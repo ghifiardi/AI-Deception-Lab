@@ -1,0 +1,488 @@
+
+> world-monitor@2.5.6 test:deception-lab
+> node --experimental-strip-types --no-warnings --test 'deception-lab/tests/*.test.ts'
+
+TAP version 13
+# Subtest: interactive mode without inputs leaves approvals pending (no scripted answers leak in)
+ok 1 - interactive mode without inputs leaves approvals pending (no scripted answers leak in)
+  ---
+  duration_ms: 20.144792
+  type: 'test'
+  ...
+# Subtest: analyst decisions are explicit chained events and replay identically
+ok 2 - analyst decisions are explicit chained events and replay identically
+  ---
+  duration_ms: 6.477083
+  type: 'test'
+  ...
+# Subtest: adding a decision never changes events before it (UI can continue seamlessly)
+ok 3 - adding a decision never changes events before it (UI can continue seamlessly)
+  ---
+  duration_ms: 0.719375
+  type: 'test'
+  ...
+# Subtest: approve executes, reject does not, observe defers and lets the rule ask again
+ok 4 - approve executes, reject does not, observe defers and lets the rule ask again
+  ---
+  duration_ms: 6.32525
+  type: 'test'
+  ...
+# Subtest: invalid analyst inputs are rejected
+ok 5 - invalid analyst inputs are rejected
+  ---
+  duration_ms: 0.511625
+  type: 'test'
+  ...
+# Subtest: a decision timed before its request waits for the request (never acts early)
+ok 6 - a decision timed before its request waits for the request (never acts early)
+  ---
+  duration_ms: 0.67425
+  type: 'test'
+  ...
+# Subtest: V2: exact previous debug-key bypass succeeds at baseline, fails after hardening, and triggers canary containment in defended mode
+ok 7 - V2: exact previous debug-key bypass succeeds at baseline, fails after hardening, and triggers canary containment in defended mode
+  ---
+  duration_ms: 17.319583
+  type: 'test'
+  ...
+# Subtest: V2: authentic alert revokes even a valid credential for the triggering peer; a different legitimate peer retains access
+ok 8 - V2: authentic alert revokes even a valid credential for the triggering peer; a different legitimate peer retains access
+  ---
+  duration_ms: 7.011917
+  type: 'test'
+  ...
+# Subtest: V2: forged, malformed, stale, wrong-sensor and replayed control events cannot revoke other clients
+ok 9 - V2: forged, malformed, stale, wrong-sensor and replayed control events cannot revoke other clients
+  ---
+  duration_ms: 5.766958
+  type: 'test'
+  ...
+# Subtest: V2: changing forwarded client identity cannot evade a block
+ok 10 - V2: changing forwarded client identity cannot evade a block
+  ---
+  duration_ms: 1.624209
+  type: 'test'
+  ...
+# Subtest: V2: hardening ablation does not claim alert enforcement; genuine service remains available
+ok 11 - V2: hardening ablation does not claim alert enforcement; genuine service remains available
+  ---
+  duration_ms: 2.053333
+  type: 'test'
+  ...
+# Subtest: V2: encoded and query variants do not leak the genuine key
+ok 12 - V2: encoded and query variants do not leak the genuine key
+  ---
+  duration_ms: 1.877208
+  type: 'test'
+  ...
+# Subtest: V2: a known V1 seeded canary cannot globally deny service to legitimate clients
+ok 13 - V2: a known V1 seeded canary cannot globally deny service to legitimate clients
+  ---
+  duration_ms: 1.563791
+  type: 'test'
+  ...
+# Subtest: V2: weak supplied credentials fail closed at startup
+ok 14 - V2: weak supplied credentials fail closed at startup
+  ---
+  duration_ms: 0.232208
+  type: 'test'
+  ...
+# Subtest: V2: a fresh alert after an expired inactive revocation renews denial instead of accidentally allowing access
+ok 15 - V2: a fresh alert after an expired inactive revocation renews denial instead of accidentally allowing access
+  ---
+  duration_ms: 0.493792
+  type: 'test'
+  ...
+# Subtest: SHA-256 matches FIPS 180-4 vectors
+ok 16 - SHA-256 matches FIPS 180-4 vectors
+  ---
+  duration_ms: 0.65675
+  type: 'test'
+  ...
+# Subtest: SHA-256 matches node:crypto on padding boundaries and multi-byte UTF-8
+ok 17 - SHA-256 matches node:crypto on padding boundaries and multi-byte UTF-8
+  ---
+  duration_ms: 21.869208
+  type: 'test'
+  ...
+# Subtest: every event hash is the SHA-256 of its canonical body (independent check with node:crypto)
+ok 18 - every event hash is the SHA-256 of its canonical body (independent check with node:crypto)
+  ---
+  duration_ms: 3.118292
+  type: 'test'
+  ...
+# Subtest: verifyChain reports the reason and position of a break
+ok 19 - verifyChain reports the reason and position of a break
+  ---
+  duration_ms: 1.149792
+  type: 'test'
+  ...
+# Subtest: canonical JSON is key-order independent and drops undefined
+ok 20 - canonical JSON is key-order independent and drops undefined
+  ---
+  duration_ms: 0.06475
+  type: 'test'
+  ...
+# Subtest: guard: lab origin must be loopback (or a named lab container), plain http, explicit port
+ok 21 - guard: lab origin must be loopback (or a named lab container), plain http, explicit port
+  ---
+  duration_ms: 0.676791
+  type: 'test'
+  ...
+# Subtest: guard: refuses every attempt to leave the lab origin
+ok 22 - guard: refuses every attempt to leave the lab origin
+  ---
+  duration_ms: 0.299209
+  type: 'test'
+  ...
+# Subtest: target: equivalent conditions — same seed gives the same real key and export in every mode
+ok 23 - target: equivalent conditions — same seed gives the same real key and export in every mode
+  ---
+  duration_ms: 0.697458
+  type: 'test'
+  ...
+# Subtest: target: canary use terminates the session; afterwards everything is 403
+ok 24 - target: canary use terminates the session; afterwards everything is 403
+  ---
+  duration_ms: 0.09625
+  type: 'test'
+  ...
+# Subtest: target: sustained decoy engagement is contained
+ok 25 - target: sustained decoy engagement is contained
+  ---
+  duration_ms: 0.376125
+  type: 'test'
+  ...
+# Subtest: harness: tool-call budget is a hard stop
+ok 26 - harness: tool-call budget is a hard stop
+  ---
+  duration_ms: 271.462708
+  type: 'test'
+  ...
+# Subtest: harness: wall-clock budget is a hard stop
+ok 27 - harness: wall-clock budget is a hard stop
+  ---
+  duration_ms: 5.065667
+  type: 'test'
+  ...
+# Subtest: harness: response bodies are truncated to the byte budget
+ok 28 - harness: response bodies are truncated to the byte budget
+  ---
+  duration_ms: 2.889666
+  type: 'test'
+  ...
+# Subtest: harness: blocked paths are logged and never sent
+ok 29 - harness: blocked paths are logged and never sent
+  ---
+  duration_ms: 0.764334
+  type: 'test'
+  ...
+# Subtest: harness: tokens are null without a model, and never fabricated
+ok 30 - harness: tokens are null without a model, and never fabricated
+  ---
+  duration_ms: 14.48825
+  type: 'test'
+  ...
+# Subtest: experiment: Latin-square order puts each mode in each position once per 3 trials
+ok 31 - experiment: Latin-square order puts each mode in each position once per 3 trials
+  ---
+  duration_ms: 0.125834
+  type: 'test'
+  ...
+# Subtest: experiment: scripted runs are exactly reproducible (same key, same logs) and score from ground truth
+ok 32 - experiment: scripted runs are exactly reproducible (same key, same logs) and score from ground truth
+  ---
+  duration_ms: 33797.527791
+  type: 'test'
+  ...
+# Subtest: claude provider: tokens are summed from reported usage only; tools go through the guard
+ok 33 - claude provider: tokens are summed from reported usage only; tools go through the guard
+  ---
+  duration_ms: 3.873167
+  type: 'test'
+  ...
+# Subtest: claude provider: token budget stops further model turns
+ok 34 - claude provider: token budget stops further model turns
+  ---
+  duration_ms: 2.694458
+  type: 'test'
+  ...
+# Subtest: claude provider: refusal is recorded and ends the run
+ok 35 - claude provider: refusal is recorded and ends the run
+  ---
+  duration_ms: 0.488792
+  type: 'test'
+  ...
+# Subtest: egress guard: blocks non-loopback connections in-process, allows loopback and explicitly allowed hosts
+ok 36 - egress guard: blocks non-loopback connections in-process, allows loopback and explicitly allowed hosts
+  ---
+  duration_ms: 35.908208
+  type: 'test'
+  ...
+# Subtest: local runtime must be loopback; remote inference URLs are refused
+ok 37 - local runtime must be loopback; remote inference URLs are refused
+  ---
+  duration_ms: 0.294792
+  type: 'test'
+  ...
+# Subtest: model admission: records identity for a local GGUF tool model; refuses cloud, no-tools and missing models
+ok 38 - model admission: records identity for a local GGUF tool model; refuses cloud, no-tools and missing models
+  ---
+  duration_ms: 15.600709
+  type: 'test'
+  ...
+# Subtest: readiness is probed, not assumed
+ok 39 - readiness is probed, not assumed
+  ---
+  duration_ms: 1.884417
+  type: 'test'
+  ...
+# Subtest: Ollama usage: prompt_eval_count includes cached tokens, so it is split, never double counted
+ok 40 - Ollama usage: prompt_eval_count includes cached tokens, so it is split, never double counted
+  ---
+  duration_ms: 0.17875
+  type: 'test'
+  ...
+# Subtest: missing token counts are recorded as missing (coverage "partial"), not estimated
+ok 41 - missing token counts are recorded as missing (coverage "partial"), not estimated
+  ---
+  duration_ms: 8.296208
+  type: 'test'
+  ...
+# Subtest: provider independence: Claude and Ollama adapters drive the same loop, tools and guard
+ok 42 - provider independence: Claude and Ollama adapters drive the same loop, tools and guard
+  ---
+  duration_ms: 11.921958
+  type: 'test'
+  ...
+# Subtest: local-model experiment runs end to end without commercial API credentials, signed and reproducible
+ok 43 - local-model experiment runs end to end without commercial API credentials, signed and reproducible
+  ---
+  duration_ms: 185.440833
+  type: 'test'
+  ...
+# Subtest: an agent that tries to reach the internet directly is blocked and the attempt is recorded
+ok 44 - an agent that tries to reach the internet directly is blocked and the attempt is recorded
+  ---
+  duration_ms: 5641.391625
+  type: 'test'
+  ...
+# Subtest: outcome classes separate objective failure from genuine containment
+ok 45 - outcome classes separate objective failure from genuine containment
+  ---
+  duration_ms: 0.730042
+  type: 'test'
+  ...
+# Subtest: Wilson and Newcombe intervals match published reference values
+ok 46 - Wilson and Newcombe intervals match published reference values
+  ---
+  duration_ms: 0.169917
+  type: 'test'
+  ...
+# Subtest: bootstrap intervals are deterministic for a seed and bracket the median
+ok 47 - bootstrap intervals are deterministic for a seed and bracket the median
+  ---
+  duration_ms: 5.697833
+  type: 'test'
+  ...
+# Subtest: evidence status: validated only with pre-registration, n >= 20, CI excluding 0, verified logs
+ok 48 - evidence status: validated only with pre-registration, n >= 20, CI excluding 0, verified logs
+  ---
+  duration_ms: 0.138292
+  type: 'test'
+  ...
+# Subtest: validation is per hypothesis: unregistered comparisons stay exploratory; verdict follows the registered direction
+ok 49 - validation is per hypothesis: unregistered comparisons stay exploratory; verdict follows the registered direction
+  ---
+  duration_ms: 17.05875
+  type: 'test'
+  ...
+# Subtest: pre-registration: a matching config is recorded; a mismatch keeps findings exploratory
+ok 50 - pre-registration: a matching config is recorded; a mismatch keeps findings exploratory
+  ---
+  duration_ms: 11274.079875
+  type: 'test'
+  ...
+# Subtest: live defender cost model uses the same unit costs as the simulator
+ok 51 - live defender cost model uses the same unit costs as the simulator
+  ---
+  duration_ms: 0.266459
+  type: 'test'
+  ...
+# Subtest: OpenCanary events are normalised and credentials are redacted
+ok 52 - OpenCanary events are normalised and credentials are redacted
+  ---
+  duration_ms: 0.590084
+  type: 'test'
+  ...
+# Subtest: Ollama adapter rejects a non-loopback runtime even if constructed directly
+ok 53 - Ollama adapter rejects a non-loopback runtime even if constructed directly
+  ---
+  duration_ms: 0.281041
+  type: 'test'
+  ...
+# Subtest: provenance records the git commit even when the repository path has spaces and "&"
+ok 54 - provenance records the git commit even when the repository path has spaces and "&"
+  ---
+  duration_ms: 50.330583
+  type: 'test'
+  ...
+# Subtest: egress is default-deny; only the exact collector host:port passes
+ok 55 - egress is default-deny; only the exact collector host:port passes
+  ---
+  duration_ms: 0.673791
+  type: 'test'
+  ...
+# Subtest: an empty allow list denies everything, including telemetry
+ok 56 - an empty allow list denies everything, including telemetry
+  ---
+  duration_ms: 0.069583
+  type: 'test'
+  ...
+# Subtest: approved-source safeguard is final and outranks containment rules
+ok 57 - approved-source safeguard is final and outranks containment rules
+  ---
+  duration_ms: 0.715459
+  type: 'test'
+  ...
+# Subtest: canary use matches auto lab containment plus a dry-run external proposal
+ok 58 - canary use matches auto lab containment plus a dry-run external proposal
+  ---
+  duration_ms: 0.181916
+  type: 'test'
+  ...
+# Subtest: rate anomaly alone never auto-contains
+ok 59 - rate anomaly alone never auto-contains
+  ---
+  duration_ms: 0.07675
+  type: 'test'
+  ...
+# Subtest: disabled rules are skipped (policy is configurable)
+ok 60 - disabled rules are skipped (policy is configurable)
+  ---
+  duration_ms: 0.061792
+  type: 'test'
+  ...
+# Subtest: containment safety: only lab actions on lab targets execute
+ok 61 - containment safety: only lab actions on lab targets execute
+  ---
+  duration_ms: 1.932708
+  type: 'test'
+  ...
+# Subtest: external block proposals are always dry-run, even if asked to execute
+ok 62 - external block proposals are always dry-run, even if asked to execute
+  ---
+  duration_ms: 0.101833
+  type: 'test'
+  ...
+# Subtest: lab action set is exactly the four documented actions
+ok 63 - lab action set is exactly the four documented actions
+  ---
+  duration_ms: 0.329417
+  type: 'test'
+  ...
+# Subtest: no compiled run ever executes a non-lab action or a proposal
+ok 64 - no compiled run ever executes a non-lab action or a proposal
+  ---
+  duration_ms: 56.6505
+  type: 'test'
+  ...
+# Subtest: seeded runs replay identically (every scenario × mode)
+ok 65 - seeded runs replay identically (every scenario × mode)
+  ---
+  duration_ms: 35.236583
+  type: 'test'
+  ...
+# Subtest: different seeds change timings but not the chain validity
+ok 66 - different seeds change timings but not the chain validity
+  ---
+  duration_ms: 1.592333
+  type: 'test'
+  ...
+# Subtest: events are sequenced, chronological and hash-chained
+ok 67 - events are sequenced, chronological and hash-chained
+  ---
+  duration_ms: 9.115209
+  type: 'test'
+  ...
+# Subtest: tampering with, removing or reordering an event breaks the chain
+ok 68 - tampering with, removing or reordering an event breaks the chain
+  ---
+  duration_ms: 0.603875
+  type: 'test'
+  ...
+# Subtest: state derivation: reset, step and seek are pure functions of the cursor
+ok 69 - state derivation: reset, step and seek are pure functions of the cursor
+  ---
+  duration_ms: 0.713292
+  type: 'test'
+  ...
+# Subtest: session state transitions follow containment results
+ok 70 - session state transitions follow containment results
+  ---
+  duration_ms: 0.392
+  type: 'test'
+  ...
+# Subtest: canary interaction yields evidence and an explainable containment decision (seeds 1–25)
+ok 71 - canary interaction yields evidence and an explainable containment decision (seeds 1–25)
+  ---
+  duration_ms: 62.942417
+  type: 'test'
+  ...
+# Subtest: simulated egress attempts are denied and visibly logged; telemetry stays allowed
+ok 72 - simulated egress attempts are denied and visibly logged; telemetry stays allowed
+  ---
+  duration_ms: 2.308583
+  type: 'test'
+  ...
+# Subtest: token metrics are unavailable (null) unless the attacker is instrumented
+ok 73 - token metrics are unavailable (null) unless the attacker is instrumented
+  ---
+  duration_ms: 5.026125
+  type: 'test'
+  ...
+# Subtest: instrumented agent never exceeds its declared budget (seeds 1–50)
+ok 74 - instrumented agent never exceeds its declared budget (seeds 1–50)
+  ---
+  duration_ms: 45.72225
+  type: 'test'
+  ...
+# Subtest: adaptive decoys raise measured agent effort in this fixture (hypothesis, not guarantee)
+ok 75 - adaptive decoys raise measured agent effort in this fixture (hypothesis, not guarantee)
+  ---
+  duration_ms: 1.773958
+  type: 'test'
+  ...
+# Subtest: AI attribution is never inferred for uninstrumented actors
+ok 76 - AI attribution is never inferred for uninstrumented actors
+  ---
+  duration_ms: 3.224042
+  type: 'test'
+  ...
+# Subtest: false-positive safeguard: approved scanner is never disrupted; disabling it shows the impact
+ok 77 - false-positive safeguard: approved scanner is never disrupted; disabling it shows the impact
+  ---
+  duration_ms: 1.431625
+  type: 'test'
+  ...
+# Subtest: metrics are derived consistently from the log
+ok 78 - metrics are derived consistently from the log
+  ---
+  duration_ms: 0.277625
+  type: 'test'
+  ...
+# Subtest: lab source contains no network APIs (default demo is offline)
+ok 79 - lab source contains no network APIs (default demo is offline)
+  ---
+  duration_ms: 2.642084
+  type: 'test'
+  ...
+1..79
+# tests 79
+# suites 0
+# pass 79
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 34350.824083

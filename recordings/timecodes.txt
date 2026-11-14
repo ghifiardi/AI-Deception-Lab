@@ -1,0 +1,12 @@
+shot 1/11 starts at 0:00
+shot 2/11 starts at 0:09
+shot 3/11 starts at 0:36
+shot 4/11 starts at 1:27
+shot 5/11 starts at 1:40
+shot 6/11 starts at 2:10
+shot 7/11 starts at 2:53
+shot 8/11 starts at 3:05
+shot 9/11 starts at 3:48
+shot 10/11 starts at 4:00
+shot 11/11 starts at 4:12
+end at 4:24

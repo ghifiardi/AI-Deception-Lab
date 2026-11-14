@@ -1,0 +1,74 @@
+# Isolated swarm engagement stack. Extends Defense V2 with:
+#  - a swarm hub (live SSE telemetry + signed-peer reverse proxy), and
+#  - per-agent peer identities so revocation through one tunnel is per-agent.
+# The V1 lab and the defense.compose.yaml validation stack are unchanged.
+name: gatra-swarm-lab
+x-node: &node
+  image: node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+  user: '10001:10001'
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ['no-new-privileges:true']
+  mem_limit: 128m
+  cpus: '0.25'
+  pids_limit: 64
+  tmpfs: ['/tmp:size=8m,noexec,nosuid,nodev']
+  volumes: ['./services:/app:ro']
+  restart: 'no'
+services:
+  collector:
+    <<: *node
+    command: ['node', '/app/collector.mjs']
+    networks: [lab]
+  defense:
+    <<: *node
+    command: ['node', '/app/defense/gateway.mjs']
+    environment:
+      # baseline | hardened | defended. Default defended; baseline runs set DEFENSE_MODE=baseline.
+      DEFENSE_MODE: '${DEFENSE_MODE:-defended}'
+      LAB_CONTROL_KEY: '${LAB_CONTROL_KEY:?required}'
+      LAB_LEGIT_KEY: '${LAB_LEGIT_KEY:?required}'
+      LAB_PEER_HEADER: x-lab-peer
+      LAB_EVENT_SINK: http://swarm-hub:8092/v1/events
+    networks: [lab]
+  canary-adapter:
+    <<: *node
+    command: ['node', '/app/defense/adapter.mjs']
+    environment:
+      LAB_CONTROL_KEY: '${LAB_CONTROL_KEY:?required}'
+    networks: [lab]
+    depends_on: [defense, collector]
+  opencanary:
+    image: thinkst/opencanary@sha256:80412a5fc332a14bc90b89924b9ccbb1f8026d143a917688ea1ab99da29bbfa2
+    user: '65534:65534'
+    entrypoint: ['/opencanary/.venv/bin/twistd']
+    command: ['-noy', '/opencanary/.venv/bin/opencanary.tac', '--pidfile', '/tmp/opencanaryd.pid']
+    working_dir: /tmp
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    mem_limit: 192m
+    cpus: '0.25'
+    pids_limit: 64
+    tmpfs: ['/tmp:size=16m,noexec,nosuid,nodev']
+    volumes: ['./opencanary/opencanary.conf:/etc/opencanaryd/opencanary.conf:ro']
+    networks: [lab]
+    depends_on: [canary-adapter]
+  swarm-hub:
+    <<: *node
+    command: ['node', '/app/swarm/hub.mjs']
+    environment:
+      LAB_UPSTREAM: http://defense:8080
+    # Loopback-only publish on the lab host: reachable via SSH/IAP forwarding,
+    # never from outside the machine. Masquerading stays off: no route off the host.
+    ports: ['127.0.0.1:18092:8092']
+    networks: [lab, edge]
+    depends_on: [defense]
+networks:
+  lab:
+    internal: true
+    driver: bridge
+  edge:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_ip_masquerade: 'false'

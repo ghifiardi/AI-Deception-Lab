@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="data:," />
+    <title>GATRA Deception Lab (simulated)</title>
+  </head>
+  <body>
+    <a class="skip" href="#timeline">Skip to event log</a>
+    <header class="bar">
+      <div class="brand">
+        <h1>GATRA Deception Lab</h1>
+        <span class="sim-badge" title="Every event is generated in this browser from synthetic fixtures">SIMULATED</span>
+      </div>
+      <div class="pickers">
+        <label class="field">
+          <span>Scenario</span>
+          <select id="scenario"></select>
+        </label>
+        <div class="field" role="group" aria-label="Deception mode">
+          <span>Deception</span>
+          <div class="seg">
+            <button type="button" data-mode="none" aria-pressed="false">None</button>
+            <button type="button" data-mode="static" aria-pressed="false">Static</button>
+            <button type="button" data-mode="adaptive" aria-pressed="true">Adaptive</button>
+          </div>
+        </div>
+        <div class="field" role="group" aria-label="Analyst">
+          <span>Analyst</span>
+          <div class="seg">
+            <button type="button" data-analyst="scripted" aria-pressed="true">Scripted</button>
+            <button type="button" data-analyst="interactive" aria-pressed="false">You decide</button>
+          </div>
+        </div>
+        <label class="field seed">
+          <span>Seed</span>
+          <input id="seed" type="number" min="1" step="1" inputmode="numeric" />
+        </label>
+      </div>
+      <button id="demo" type="button" class="btn btn-demo">Play demo</button>
+    </header>
+
+    <p id="summary" class="summary"></p>
+
+    <div class="transport" role="toolbar" aria-label="Playback">
+      <button id="reset" type="button" class="btn" title="Reset (R)">Reset</button>
+      <button id="back" type="button" class="btn" title="Step back (←)">Back</button>
+      <button id="play" type="button" class="btn btn-primary" title="Play or pause (Space)" aria-pressed="false">Play</button>
+      <button id="step" type="button" class="btn" title="Step forward (→)">Step</button>
+      <label class="field inline">
+        <span>Speed</span>
+        <select id="speed">
+          <option value="0.5">0.5×</option>
+          <option value="1" selected>1×</option>
+          <option value="2">2×</option>
+          <option value="4">4×</option>
+        </select>
+      </label>
+      <input id="scrub" type="range" min="0" value="0" aria-label="Event position" />
+      <span id="clock" class="mono clock" aria-live="off"></span>
+    </div>
+
+    <main class="grid">
+      <div class="col col-main">
+      <section class="stage" aria-label="Topology">
+        <div id="topology" class="topology"></div>
+        <p id="watermark" class="watermark">SIMULATED · synthetic events only · no outbound connections</p>
+        <div id="overlay" class="overlay" hidden></div>
+        <p id="caption" class="caption" aria-live="polite" hidden></p>
+        <button id="exit-demo" type="button" class="btn exit-demo">Exit demo (Esc)</button>
+      </section>
+
+      <section class="log" aria-labelledby="log-h">
+        <div class="log-head">
+          <h2 id="log-h">Event log</h2>
+          <span id="chain" class="mono muted"></span>
+          <button id="export" type="button" class="btn btn-small">Export run</button>
+        </div>
+        <p class="muted small">Append-only, SHA-256 hash-chained, unsigned. Open a row to see its evidence and hashes. Export a run and check it with <span class="mono">npm run deception-lab:verify</span>.</p>
+        <div id="timeline" class="scroll" tabindex="0"></div>
+      </section>
+      </div>
+
+      <div class="col col-side">
+      <aside id="decision" class="side" aria-label="Evidence and decisions"></aside>
+
+      <section class="tabs" aria-label="Analysis">
+        <div role="tablist" class="tablist">
+          <button role="tab" id="tab-econ" aria-controls="econ" aria-selected="true" type="button">Attack economics</button>
+          <button role="tab" id="tab-experiments" aria-controls="experiments" aria-selected="false" type="button">Experiments</button>
+          <button role="tab" id="tab-policy" aria-controls="policy" aria-selected="false" type="button">Policy</button>
+          <button role="tab" id="tab-live" aria-controls="live" aria-selected="false" type="button">Live</button>
+        </div>
+        <div id="econ" role="tabpanel" aria-labelledby="tab-econ"></div>
+        <div id="experiments" role="tabpanel" aria-labelledby="tab-experiments" hidden></div>
+        <div id="policy" role="tabpanel" aria-labelledby="tab-policy" hidden></div>
+        <div id="live" role="tabpanel" aria-labelledby="tab-live" hidden></div>
+      </section>
+      </div>
+    </main>
+
+    <footer class="foot">
+      Defensive research simulation. No scanning, no live attack traffic, no production connectivity. Decoy credentials are synthetic and
+      invalid everywhere; addresses come from documentation ranges (RFC 5737).
+    </footer>
+    <script type="module" src="./src/ui/main.ts"></script>
+  </body>
+</html>

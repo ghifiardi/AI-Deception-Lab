@@ -1,0 +1,52 @@
+{
+  "creationTimestamp": "2026-11-12T23:28:01.893-08:00",
+  "disks": [
+    {
+      "source": "https://www.googleapis.com/compute/v1/projects/tantular-dashboard/zones/asia-southeast2-a/disks/gatra-deception-demo",
+      "autoDelete": true,
+      "boot": true,
+      "diskSizeGb": "20",
+      "architecture": "X86_64"
+    }
+  ],
+  "name": "gatra-deception-demo",
+  "networkInterfaces": [
+    {
+      "accessConfigs": [
+        {
+          "kind": "compute#accessConfig",
+          "name": "external-nat",
+          "natIP": "<redacted-ephemeral-ip>",
+          "networkTier": "PREMIUM",
+          "type": "ONE_TO_ONE_NAT"
+        }
+      ],
+      "fingerprint": "4hgVwLN1gzI=",
+      "kind": "compute#networkInterface",
+      "name": "nic0",
+      "network": "https://www.googleapis.com/compute/v1/projects/tantular-dashboard/global/networks/gatra-deception-demo-net",
+      "networkIP": "10.203.0.2",
+      "stackType": "IPV4_ONLY",
+      "subnetwork": "https://www.googleapis.com/compute/v1/projects/tantular-dashboard/regions/asia-southeast2/subnetworks/gatra-deception-demo-subnet"
+    }
+  ],
+  "scheduling": {
+    "automaticRestart": false,
+    "instanceTerminationAction": "STOP",
+    "maxRunDuration": {
+      "nanos": 0,
+      "seconds": "3600"
+    },
+    "onHostMaintenance": "MIGRATE",
+    "preemptible": false,
+    "provisioningModel": "STANDARD"
+  },
+  "status": "RUNNING",
+  "tags": {
+    "fingerprint": "sP7ff6Ft2Z4=",
+    "items": [
+      "gatra-deception-demo"
+    ]
+  },
+  "serviceAccounts": []
+}

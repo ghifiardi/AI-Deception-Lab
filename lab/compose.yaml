@@ -1,0 +1,94 @@
+# OPTIONAL container lab. The browser simulator does NOT need this.
+#
+# Services: honeypot (lab/services/target.mjs, LAB_MODE=none|static|adaptive),
+# collector (in-lab telemetry sink), driver (deterministic scripted agent run
+# through the same single-origin guard used on the host).
+#
+# Isolation model (runtime-validated by `npm run deception-lab:validate-lab`):
+#   - One Docker network with `internal: true`: no route off the host, so
+#     egress is deny-all; the collector is the only allow-listed peer.
+#   - No ports published to the host. Inspect with `docker compose logs`.
+#   - uid 10001, read-only root FS, cap_drop ALL, no-new-privileges, 128 MiB,
+#     0.25 CPU, 64 PIDs, noexec tmpfs, no Docker socket, no credentials,
+#     image pinned by digest.
+#
+# Run (from repo root):
+#   LAB_MODE=static docker compose -f deception-lab/lab/compose.yaml up -d collector honeypot
+#   docker compose -f deception-lab/lab/compose.yaml --profile replay run --rm driver
+#   docker compose -f deception-lab/lab/compose.yaml logs honeypot collector
+#   docker compose -f deception-lab/lab/compose.yaml down -v
+# For host-level rootless isolation use Docker rootless mode or `podman compose` (not validated here).
+
+name: gatra-deception-lab
+
+x-hardened: &hardened
+  # node:22-alpine pinned by digest (pulled 2026-11-12).
+  image: node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+  user: "10001:10001"
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  tmpfs: ["/tmp:size=8m,noexec,nosuid,nodev"]
+  mem_limit: 128m
+  cpus: "0.25"
+  pids_limit: 64
+  restart: "no"
+  volumes: ["./services:/app:ro"]
+  networks: [lab_internal]
+  environment:
+    NODE_OPTIONS: "--max-old-space-size=64"
+    COLLECTOR_URL: "http://collector:4318/v1/events"
+
+services:
+  collector:
+    <<: *hardened
+    command: ["node", "/app/collector.mjs"]
+
+  honeypot:
+    <<: *hardened
+    command: ["node", "/app/honeypot.mjs"]
+    depends_on: [collector]
+    environment:
+      NODE_OPTIONS: "--max-old-space-size=64"
+      COLLECTOR_URL: "http://collector:4318/v1/events"
+      LAB_MODE: "${LAB_MODE:-static}"
+      LAB_SEED: "42"
+
+  driver:
+    <<: *hardened
+    profiles: ["replay"]
+    command: ["node", "/app/driver.mjs"]
+    depends_on: [honeypot]
+
+  # ---- Optional OpenCanary integration (feature flag: compose profile "opencanary"; OFF by default) ----
+  canary-adapter:
+    <<: *hardened
+    profiles: ["opencanary"]
+    command: ["node", "/app/canary-adapter.mjs"]
+    depends_on: [collector]
+
+  opencanary:
+    profiles: ["opencanary"]
+    # thinkst/opencanary 0.9.10 pinned by digest (pulled 2026-11-12).
+    image: thinkst/opencanary@sha256:80412a5fc332a14bc90b89924b9ccbb1f8026d143a917688ea1ab99da29bbfa2
+    # Run twistd directly: the image's wrapper uses sudo, which we do not allow.
+    user: "65534:65534"
+    entrypoint: ["/opencanary/.venv/bin/twistd"]
+    command: ["-noy", "/opencanary/.venv/bin/opencanary.tac", "--pidfile", "/tmp/opencanaryd.pid"]
+    working_dir: /tmp
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: ["/tmp:size=16m,noexec,nosuid,nodev"]
+    mem_limit: 192m
+    cpus: "0.25"
+    pids_limit: 64
+    restart: "no"
+    volumes: ["./opencanary/opencanary.conf:/etc/opencanaryd/opencanary.conf:ro"]
+    networks: [lab_internal]
+    depends_on: [canary-adapter]
+
+networks:
+  lab_internal:
+    internal: true
+    driver: bridge

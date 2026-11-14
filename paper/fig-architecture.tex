@@ -1,0 +1,30 @@
+% Figure 1: V2 architecture and trust boundaries (TikZ, single column).
+\begin{tikzpicture}[
+  font=\footnotesize,
+  box/.style={draw, rounded corners=2pt, align=center, minimum width=2.0cm, minimum height=0.85cm, fill=white},
+  key/.style={box, very thick, fill=gray!12},
+  arr/.style={-{Stealth[length=2mm]}, thick},
+  lbl/.style={font=\scriptsize, fill=white, inner sep=1pt, align=center}
+]
+  \node[box] (atk) at (0,0) {Attacker\\container};
+  \node[box] (leg) at (2.9,0) {Legitimate\\client};
+  \node[box] (oc)  at (0,-1.9) {OpenCanary\\sensor};
+  \node[key] (gw)  at (2.9,-1.9) {V2 gateway};
+  \node[box] (api) at (5.6,-1.9) {Mock\\Records API};
+  \node[box] (ad)  at (0,-3.8) {Adapter:\\verify, redact,\\sign};
+  \node[box] (ctl) at (2.9,-3.8) {Control\\endpoint};
+  \node[box] (col) at (0,-5.6) {Collector:\\redacted evidence};
+
+  \draw[arr] (atk) -- node[lbl, right] {synthetic\\login} (oc);
+  \draw[arr] (atk.east) -- node[lbl, sloped, above] {app HTTP} (gw.north west);
+  \draw[arr] (leg) -- node[lbl, right] {valid key} (gw);
+  \draw[arr] (gw) -- (api);
+  \draw[arr] (oc) -- node[lbl, right, align=left] {webhook,\\verified\\source} (ad);
+  \draw[arr] (ad) -- node[lbl, above, font=\tiny] {HMAC} (ctl);
+  \draw[arr] (ctl) -- node[lbl, right, align=left] {revoke peer,\\15 min} (gw);
+  \draw[arr] (ad) -- (col);
+
+  \begin{scope}[on background layer]
+    \node[draw, dashed, rounded corners=4pt, fit=(atk)(leg)(oc)(gw)(api)(ad)(ctl)(col), inner sep=7pt, label={[font=\scriptsize]below:internal Docker network, no published ports}] {};
+  \end{scope}
+\end{tikzpicture}

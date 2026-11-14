@@ -1,0 +1,4 @@
+
+> world-monitor@2.5.6 deception-lab:typecheck
+> tsc -p deception-lab
+

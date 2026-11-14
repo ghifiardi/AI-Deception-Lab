@@ -1,0 +1,20 @@
+# Build output
+dist/
+node_modules/
+
+# Large media: attach to a GitHub release or Zenodo instead of committing
+recordings/*.mp4
+recordings/*.webm
+docs/*.mp4
+docs/*.pptx
+docs/*.png
+!docs/screenshots/*.png
+paper/*.zip
+
+# Local secrets, never commit
+.env*
+*.pem
+*.key
+
+# Private notes and pre-redaction originals
+_private/

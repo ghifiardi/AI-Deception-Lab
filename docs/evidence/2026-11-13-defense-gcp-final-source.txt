@@ -1,0 +1,9 @@
+WARNING: 
+
+To increase the performance of the tunnel, consider installing NumPy. For instructions,
+please see https://cloud.google.com/iap/docs/using-tcp-forwarding#increasing_the_tcp_upload_bandwidth
+
+a9314e5708c90f40d08eff1a5ec98e0d27d34e5569fab2c1d536b894ac98c6d1  /opt/deception-lab/lab/services/defense/gateway.mjs
+6a0b94131e9c541f8c203cc30a14cca370342e7bd89a7974375b8f40405e6fc7  /opt/deception-lab/lab/services/defense/adapter.mjs
+bd2bea06d3a2f09a9d03e0e553a0677f10a3a30b85d64f31aa3cae10758d4184  /opt/deception-lab/lab/services/defense/verify.mjs
+3aaee22745e23b14c5ed2dbff2e5e0b4f98c5743ae9c90ff996fdf58d7d41baa  /opt/deception-lab/lab/defense.compose.yaml

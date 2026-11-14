@@ -1,0 +1,4 @@
+SNAPSHOT: ../../lab/services/defense/gateway.mjs differs from current code; model study used source-snapshots/72f6fda3d6f917dabb176a729f6949f7ce309f40a8d7805d8e292c9ca3925ea2.txt
+VALID: 60 sessions, 120 event chains, protocol/result digests, measured source fingerprints, summary counts, Wilson intervals and exact paired statistics.
+Outcome check limit: positive objective/submission evidence is checked; expected export values are not in this artifact, so answers cannot be independently rescored.
+Unsigned evidence: integrity checks are not external attestation or production certification.

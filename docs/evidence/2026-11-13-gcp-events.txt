@@ -1,0 +1,85 @@
+canary-adapter-1  | {"sensor":"opencanary-adapter","listening":4319}
+canary-adapter-1  | {"sensor":"opencanary-adapter","source":"opencanary","nodeId":"lab-opencanary-1","logtype":1001,"kind":"message","evidenceType":null,"srcHost":"","dstPort":-1,"path":null,"method":null,"userAgent":null,"localTime":"2026-11-13 07:32:02.948843"}
+canary-adapter-1  | {"sensor":"opencanary-adapter","source":"opencanary","nodeId":"lab-opencanary-1","logtype":1001,"kind":"message","evidenceType":null,"srcHost":"","dstPort":-1,"path":null,"method":null,"userAgent":null,"localTime":"2026-11-13 07:32:03.031076"}
+canary-adapter-1  | {"sensor":"opencanary-adapter","source":"opencanary","nodeId":"lab-opencanary-1","logtype":3000,"kind":"http.get","evidenceType":"decoy-interaction","srcHost":"172.18.0.2","dstPort":8081,"path":"/index.html","method":"GET","userAgent":"node","localTime":"2026-11-13 07:32:06.715184"}
+canary-adapter-1  | {"sensor":"opencanary-adapter","source":"opencanary","nodeId":"lab-opencanary-1","logtype":3001,"kind":"http.login-attempt","evidenceType":"decoy-interaction","srcHost":"172.18.0.2","dstPort":8081,"path":"/index.html","method":"POST","userAgent":"node","localTime":"2026-11-13 07:32:08.119016","credentials":{"usernameSha256":"17c0d5ae901159746b6c4c965bcc700083bf742cbe43cad9c11b6dc302954600","passwordLength":18,"redacted":true}}
+opencanary-1      | ** We hope you enjoy using OpenCanary. For more open source Canary goodness, head over to canarytokens.org. **
+opencanary-1      | [-] Using config file: /etc/opencanaryd/opencanary.conf
+opencanary-1      | 2026-11-13T07:31:57+0000 [-] Loading /opencanary/.venv/bin/opencanary.tac...
+opencanary-1      | 2026-11-13T07:32:03+0000 [-] Loaded.
+opencanary-1      | 2026-11-13T07:32:03+0000 [twisted.scripts._twistd_unix.UnixAppLogger#info] twistd 26.4.0 (/opencanary/.venv/bin/python 3.10.22) starting up.
+opencanary-1      | 2026-11-13T07:32:03+0000 [twisted.scripts._twistd_unix.UnixAppLogger#info] reactor class: twisted.internet.epollreactor.EPollReactor.
+opencanary-1      | 2026-11-13T07:32:03+0000 [-] CanaryHttpServiceSite starting on 8081
+opencanary-1      | 2026-11-13T07:32:03+0000 [opencanary.modules.http.CanaryHttpServiceSite#info] Starting factory <opencanary.modules.http.CanaryHttpServiceSite object at 0x7b0de20ddc30>
+opencanary-1      | 2026-11-13T07:32:06+0000 [twisted.python.log#info] "172.18.0.2" - - [13/Nov/2026:07:32:06 +0000] "GET /index.html HTTP/1.1" 200 10210 "-" "node"
+opencanary-1      | 2026-11-13T07:32:08+0000 [twisted.python.log#info] "172.18.0.2" - - [13/Nov/2026:07:32:07 +0000] "POST /index.html HTTP/1.1" 200 10263 "-" "node"
+collector-1       | {"collector":"listening","port":4318}
+collector-1       | {"collector_seq":1,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":1,"method":"GET","path":"/robots.txt"}}
+collector-1       | {"collector_seq":2,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":2,"method":"GET","path":"/api/v1/openapi.json"}}
+collector-1       | {"collector_seq":3,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":3,"method":"GET","path":"/backup/config.bak"}}
+collector-1       | {"collector_seq":4,"event":{"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":3,"path":"/backup/config.bak","count":1}}
+collector-1       | {"collector_seq":5,"event":{"sensor":"honeypot","mode":"adaptive","type":"containment","request":3,"action":"throttle_requests","reason":"first decoy interaction"}}
+collector-1       | {"collector_seq":6,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":4,"method":"GET","path":"/api/v2/internal/accounts"}}
+collector-1       | {"collector_seq":7,"event":{"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":4,"path":"/api/v2/internal/accounts","count":2}}
+collector-1       | {"collector_seq":8,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":5,"method":"GET","path":"/api/v1/debug/env"}}
+collector-1       | {"collector_seq":9,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":6,"method":"GET","path":"/api/v1/health"}}
+collector-1       | {"collector_seq":10,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":7,"method":"GET","path":"/api/v2/records"}}
+collector-1       | {"collector_seq":11,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":8,"method":"GET","path":"/api/v2/internal/accounts?cursor=2"}}
+collector-1       | {"collector_seq":12,"event":{"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":8,"path":"/api/v2/internal/accounts","count":3}}
+collector-1       | {"collector_seq":13,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":9,"method":"GET","path":"/api/v2/internal/accounts?cursor=3"}}
+collector-1       | {"collector_seq":14,"event":{"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":9,"path":"/api/v2/internal/accounts","count":4}}
+collector-1       | {"collector_seq":15,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":10,"method":"GET","path":"/api/v2/internal/export"}}
+collector-1       | {"collector_seq":16,"event":{"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":10,"path":"/api/v2/internal/export","count":5}}
+collector-1       | {"collector_seq":17,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":11,"method":"GET","path":"/api/v2/internal/accounts?cursor=4"}}
+collector-1       | {"collector_seq":18,"event":{"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":11,"path":"/api/v2/internal/accounts","count":6}}
+collector-1       | {"collector_seq":19,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":12,"method":"GET","path":"/api/v2/internal/accounts?cursor=5"}}
+collector-1       | {"collector_seq":20,"event":{"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":12,"path":"/api/v2/internal/accounts","count":7}}
+collector-1       | {"collector_seq":21,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":13,"method":"GET","path":"/api/v2/internal/accounts?cursor=6"}}
+collector-1       | {"collector_seq":22,"event":{"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":13,"path":"/api/v2/internal/accounts","count":8}}
+collector-1       | {"collector_seq":23,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":14,"method":"GET","path":"/api/v2/internal/accounts?cursor=7"}}
+collector-1       | {"collector_seq":24,"event":{"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":14,"path":"/api/v2/internal/accounts","count":9}}
+collector-1       | {"collector_seq":25,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":15,"method":"GET","path":"/api/v2/internal/accounts?cursor=8"}}
+collector-1       | {"collector_seq":26,"event":{"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":15,"path":"/api/v2/internal/accounts","count":10}}
+collector-1       | {"collector_seq":27,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":16,"method":"GET","path":"/api/v2/internal/accounts?cursor=9"}}
+collector-1       | {"collector_seq":28,"event":{"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":16,"path":"/api/v2/internal/accounts","count":11}}
+collector-1       | {"collector_seq":29,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":17,"method":"GET","path":"/api/v2/internal/accounts?cursor=10"}}
+collector-1       | {"collector_seq":30,"event":{"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":17,"path":"/api/v2/internal/accounts","count":12}}
+collector-1       | {"collector_seq":31,"event":{"sensor":"honeypot","mode":"adaptive","type":"containment","request":17,"action":"terminate_session","reason":"sustained decoy engagement"}}
+collector-1       | {"collector_seq":32,"event":{"sensor":"honeypot","mode":"adaptive","type":"request","request":18,"method":"GET","path":"/api/v2/internal/accounts?cursor=11"}}
+collector-1       | {"collector_seq":33,"event":{"sensor":"opencanary-adapter","source":"opencanary","nodeId":"lab-opencanary-1","logtype":1001,"kind":"message","evidenceType":null,"srcHost":"","dstPort":-1,"path":null,"method":null,"userAgent":null,"localTime":"2026-11-13 07:32:02.948843"}}
+collector-1       | {"collector_seq":34,"event":{"sensor":"opencanary-adapter","source":"opencanary","nodeId":"lab-opencanary-1","logtype":1001,"kind":"message","evidenceType":null,"srcHost":"","dstPort":-1,"path":null,"method":null,"userAgent":null,"localTime":"2026-11-13 07:32:03.031076"}}
+collector-1       | {"collector_seq":35,"event":{"sensor":"opencanary-adapter","source":"opencanary","nodeId":"lab-opencanary-1","logtype":3000,"kind":"http.get","evidenceType":"decoy-interaction","srcHost":"172.18.0.2","dstPort":8081,"path":"/index.html","method":"GET","userAgent":"node","localTime":"2026-11-13 07:32:06.715184"}}
+collector-1       | {"collector_seq":36,"event":{"sensor":"opencanary-adapter","source":"opencanary","nodeId":"lab-opencanary-1","logtype":3001,"kind":"http.login-attempt","evidenceType":"decoy-interaction","srcHost":"172.18.0.2","dstPort":8081,"path":"/index.html","method":"POST","userAgent":"node","localTime":"2026-11-13 07:32:08.119016","credentials":{"usernameSha256":"17c0d5ae901159746b6c4c965bcc700083bf742cbe43cad9c11b6dc302954600","passwordLength":18,"redacted":true}}}
+honeypot-1        | {"sensor":"honeypot","listening":8080,"mode":"adaptive"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":1,"method":"GET","path":"/robots.txt"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":2,"method":"GET","path":"/api/v1/openapi.json"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":3,"method":"GET","path":"/backup/config.bak"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":3,"path":"/backup/config.bak","count":1}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"containment","request":3,"action":"throttle_requests","reason":"first decoy interaction"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":4,"method":"GET","path":"/api/v2/internal/accounts"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":4,"path":"/api/v2/internal/accounts","count":2}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":5,"method":"GET","path":"/api/v1/debug/env"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":6,"method":"GET","path":"/api/v1/health"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":7,"method":"GET","path":"/api/v2/records"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":8,"method":"GET","path":"/api/v2/internal/accounts?cursor=2"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":8,"path":"/api/v2/internal/accounts","count":3}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":9,"method":"GET","path":"/api/v2/internal/accounts?cursor=3"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":9,"path":"/api/v2/internal/accounts","count":4}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":10,"method":"GET","path":"/api/v2/internal/export"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":10,"path":"/api/v2/internal/export","count":5}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":11,"method":"GET","path":"/api/v2/internal/accounts?cursor=4"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":11,"path":"/api/v2/internal/accounts","count":6}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":12,"method":"GET","path":"/api/v2/internal/accounts?cursor=5"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":12,"path":"/api/v2/internal/accounts","count":7}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":13,"method":"GET","path":"/api/v2/internal/accounts?cursor=6"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":13,"path":"/api/v2/internal/accounts","count":8}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":14,"method":"GET","path":"/api/v2/internal/accounts?cursor=7"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":14,"path":"/api/v2/internal/accounts","count":9}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":15,"method":"GET","path":"/api/v2/internal/accounts?cursor=8"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":15,"path":"/api/v2/internal/accounts","count":10}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":16,"method":"GET","path":"/api/v2/internal/accounts?cursor=9"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":16,"path":"/api/v2/internal/accounts","count":11}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":17,"method":"GET","path":"/api/v2/internal/accounts?cursor=10"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"decoy.hit","request":17,"path":"/api/v2/internal/accounts","count":12}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"containment","request":17,"action":"terminate_session","reason":"sustained decoy engagement"}
+honeypot-1        | {"sensor":"honeypot","mode":"adaptive","type":"request","request":18,"method":"GET","path":"/api/v2/internal/accounts?cursor=11"}

@@ -1,0 +1,70 @@
+name: gatra-defense-v2
+x-node: &node
+  image: node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+  user: '10001:10001'
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ['no-new-privileges:true']
+  mem_limit: 128m
+  cpus: '0.25'
+  pids_limit: 64
+  tmpfs: ['/tmp:size=8m,noexec,nosuid,nodev']
+  volumes: ['./services:/app:ro']
+  networks: [validation]
+  restart: 'no'
+services:
+  collector:
+    <<: *node
+    command: ['node', '/app/collector.mjs']
+  defense:
+    <<: *node
+    command: ['node', '/app/defense/gateway.mjs']
+    environment:
+      DEFENSE_MODE: defended
+      LAB_CONTROL_KEY: '${LAB_CONTROL_KEY:?required}'
+      LAB_LEGIT_KEY: '${LAB_LEGIT_KEY:?required}'
+  canary-adapter:
+    <<: *node
+    command: ['node', '/app/defense/adapter.mjs']
+    environment:
+      LAB_CONTROL_KEY: '${LAB_CONTROL_KEY:?required}'
+    depends_on: [defense, collector]
+  opencanary:
+    image: thinkst/opencanary@sha256:80412a5fc332a14bc90b89924b9ccbb1f8026d143a917688ea1ab99da29bbfa2
+    user: '65534:65534'
+    entrypoint: ['/opencanary/.venv/bin/twistd']
+    command: ['-noy', '/opencanary/.venv/bin/opencanary.tac', '--pidfile', '/tmp/opencanaryd.pid']
+    working_dir: /tmp
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    mem_limit: 192m
+    cpus: '0.25'
+    pids_limit: 64
+    tmpfs: ['/tmp:size=16m,noexec,nosuid,nodev']
+    volumes: ['./opencanary/opencanary.conf:/etc/opencanaryd/opencanary.conf:ro']
+    networks: [validation]
+    depends_on: [canary-adapter]
+  attacker:
+    <<: *node
+    command: ['node', '/app/defense/client.mjs']
+  bypass:
+    <<: *node
+    command: ['node', '/app/defense/client.mjs']
+  legitimate:
+    <<: *node
+    command: ['node', '/app/defense/client.mjs']
+    environment:
+      CLIENT_ROLE: legitimate
+      LAB_LEGIT_KEY: '${LAB_LEGIT_KEY:?required}'
+  verifier:
+    <<: *node
+    profiles: [verify]
+    command: ['node', '/app/defense/verify.mjs']
+    environment:
+      LAB_CONTROL_KEY: '${LAB_CONTROL_KEY:?required}'
+      LAB_LEGIT_KEY: '${LAB_LEGIT_KEY:?required}'
+networks:
+  validation:
+    internal: true
+    driver: bridge

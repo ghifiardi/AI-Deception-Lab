@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this lab or its data, please cite the paper below."
+title: "GATRA Deception Lab"
+type: software
+authors:
+  - family-names: Ghifiardi
+    given-names: Raditio
+license: MIT
+repository-code: "https://github.com/ghifiardi/AI-Deception-Lab"
+version: "1.0-preprint"
+date-released: "2026-11-14"
+keywords: [cyber deception, honeypot, canary token, LLM agents, AI security]
+preferred-citation:
+  type: article
+  title: "Optional Traps: An Empirical Study of LLM Agents Against Credential Deception and Alert-Driven Revocation"
+  authors:
+    - family-names: Ghifiardi
+      given-names: Raditio
+  year: 2026
+  notes: "arXiv preprint (cs.CR). Add the arXiv ID and Zenodo DOI once assigned."

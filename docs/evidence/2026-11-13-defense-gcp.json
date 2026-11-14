@@ -1,0 +1,80 @@
+{
+  "format": "gatra/defense-cloud-validation@1",
+  "completedAt": "2026-11-13T07:58:58.442Z",
+  "passed": 14,
+  "total": 14,
+  "latencyUpperBoundMs": 266,
+  "legitimateRequestsAfterAlert": 100,
+  "checks": [
+    {
+      "id": "uncredentialed-export-denied",
+      "pass": true,
+      "actual": 401
+    },
+    {
+      "id": "legitimate-before",
+      "pass": true,
+      "actual": 200
+    },
+    {
+      "id": "compromised-token-before-alert",
+      "pass": true,
+      "actual": 200
+    },
+    {
+      "id": "forged-opencanary-source-rejected",
+      "pass": true,
+      "actual": 403
+    },
+    {
+      "id": "exact-old-debug-bypass-contained",
+      "pass": true,
+      "actual": 403
+    },
+    {
+      "id": "real-opencanary-login",
+      "pass": true,
+      "actual": 200
+    },
+    {
+      "id": "real-alert-revokes-compromised-token",
+      "pass": true,
+      "actual": 403
+    },
+    {
+      "id": "revocation-within-10-seconds",
+      "pass": true,
+      "actual": true
+    },
+    {
+      "id": "forwarded-header-evasion-rejected",
+      "pass": true,
+      "actual": 403
+    },
+    {
+      "id": "legitimate-after-100-requests",
+      "pass": true,
+      "actual": 100
+    },
+    {
+      "id": "forged-control-signature-rejected",
+      "pass": true,
+      "actual": 401
+    },
+    {
+      "id": "signed-control-event-accepted",
+      "pass": true,
+      "actual": 202
+    },
+    {
+      "id": "signed-control-replay-rejected",
+      "pass": true,
+      "actual": 409
+    },
+    {
+      "id": "legitimate-after-forgery-tests",
+      "pass": true,
+      "actual": 200
+    }
+  ]
+}

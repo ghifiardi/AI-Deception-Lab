@@ -1,0 +1,433 @@
+{
+  "format": "gatra-deception-lab/lab-validation@1",
+  "ranAt": "2026-11-13T07:19:32.107Z",
+  "git": "37af352",
+  "docker": "29.2.1 | Docker Desktop | aarch64 | cgroup v2",
+  "image": "node@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a",
+  "composeProject": "gatra-deception-lab-validate",
+  "opencanary": true,
+  "passed": 60,
+  "total": 60,
+  "checks": [
+    {
+      "id": "CFG-collector-user",
+      "area": "config",
+      "description": "collector: runs as non-root 10001:10001",
+      "pass": true,
+      "observed": "10001:10001"
+    },
+    {
+      "id": "CFG-collector-rofs",
+      "area": "config",
+      "description": "collector: read-only root filesystem",
+      "pass": true,
+      "observed": "true"
+    },
+    {
+      "id": "CFG-collector-caps",
+      "area": "config",
+      "description": "collector: all capabilities dropped, none added",
+      "pass": true,
+      "observed": "CapDrop=[\"ALL\"] CapAdd=null"
+    },
+    {
+      "id": "CFG-collector-nnp",
+      "area": "config",
+      "description": "collector: no-new-privileges",
+      "pass": true,
+      "observed": "[\"no-new-privileges:true\"]"
+    },
+    {
+      "id": "CFG-collector-priv",
+      "area": "config",
+      "description": "collector: not privileged",
+      "pass": true,
+      "observed": "false"
+    },
+    {
+      "id": "CFG-collector-mem",
+      "area": "config",
+      "description": "collector: memory limit 128 MiB",
+      "pass": true,
+      "observed": "134217728"
+    },
+    {
+      "id": "CFG-collector-cpu",
+      "area": "config",
+      "description": "collector: CPU limit 0.25",
+      "pass": true,
+      "observed": "250000000"
+    },
+    {
+      "id": "CFG-collector-pids",
+      "area": "config",
+      "description": "collector: PID limit 64",
+      "pass": true,
+      "observed": "64"
+    },
+    {
+      "id": "CFG-collector-mounts",
+      "area": "config",
+      "description": "collector: only /app (read-only) mounted; no Docker socket",
+      "pass": true,
+      "observed": "bind:/app:ro"
+    },
+    {
+      "id": "CFG-collector-ports",
+      "area": "config",
+      "description": "collector: no ports published to the host",
+      "pass": true,
+      "observed": "{}"
+    },
+    {
+      "id": "CFG-collector-env",
+      "area": "config",
+      "description": "collector: no credential-like environment variables",
+      "pass": true,
+      "observed": "none"
+    },
+    {
+      "id": "CFG-collector-nets",
+      "area": "config",
+      "description": "collector: attached only to the lab network",
+      "pass": true,
+      "observed": "gatra-deception-lab-validate_lab_internal"
+    },
+    {
+      "id": "CFG-honeypot-user",
+      "area": "config",
+      "description": "honeypot: runs as non-root 10001:10001",
+      "pass": true,
+      "observed": "10001:10001"
+    },
+    {
+      "id": "CFG-honeypot-rofs",
+      "area": "config",
+      "description": "honeypot: read-only root filesystem",
+      "pass": true,
+      "observed": "true"
+    },
+    {
+      "id": "CFG-honeypot-caps",
+      "area": "config",
+      "description": "honeypot: all capabilities dropped, none added",
+      "pass": true,
+      "observed": "CapDrop=[\"ALL\"] CapAdd=null"
+    },
+    {
+      "id": "CFG-honeypot-nnp",
+      "area": "config",
+      "description": "honeypot: no-new-privileges",
+      "pass": true,
+      "observed": "[\"no-new-privileges:true\"]"
+    },
+    {
+      "id": "CFG-honeypot-priv",
+      "area": "config",
+      "description": "honeypot: not privileged",
+      "pass": true,
+      "observed": "false"
+    },
+    {
+      "id": "CFG-honeypot-mem",
+      "area": "config",
+      "description": "honeypot: memory limit 128 MiB",
+      "pass": true,
+      "observed": "134217728"
+    },
+    {
+      "id": "CFG-honeypot-cpu",
+      "area": "config",
+      "description": "honeypot: CPU limit 0.25",
+      "pass": true,
+      "observed": "250000000"
+    },
+    {
+      "id": "CFG-honeypot-pids",
+      "area": "config",
+      "description": "honeypot: PID limit 64",
+      "pass": true,
+      "observed": "64"
+    },
+    {
+      "id": "CFG-honeypot-mounts",
+      "area": "config",
+      "description": "honeypot: only /app (read-only) mounted; no Docker socket",
+      "pass": true,
+      "observed": "bind:/app:ro"
+    },
+    {
+      "id": "CFG-honeypot-ports",
+      "area": "config",
+      "description": "honeypot: no ports published to the host",
+      "pass": true,
+      "observed": "{}"
+    },
+    {
+      "id": "CFG-honeypot-env",
+      "area": "config",
+      "description": "honeypot: no credential-like environment variables",
+      "pass": true,
+      "observed": "none"
+    },
+    {
+      "id": "CFG-honeypot-nets",
+      "area": "config",
+      "description": "honeypot: attached only to the lab network",
+      "pass": true,
+      "observed": "gatra-deception-lab-validate_lab_internal"
+    },
+    {
+      "id": "NET-internal",
+      "area": "isolation",
+      "description": "lab network is internal (no route off the host)",
+      "pass": true,
+      "observed": "Internal=true"
+    },
+    {
+      "id": "RT-uid",
+      "area": "runtime",
+      "description": "process uid/gid inside container is 10001",
+      "pass": true,
+      "observed": "10001\n10001"
+    },
+    {
+      "id": "RT-rootfs-write",
+      "area": "runtime",
+      "description": "writing to / fails (read-only)",
+      "pass": true,
+      "observed": "touch: /probe: Read-only file system\nrc=1"
+    },
+    {
+      "id": "RT-app-write",
+      "area": "runtime",
+      "description": "writing to /app fails (read-only bind)",
+      "pass": true,
+      "observed": "touch: /app/probe: Read-only file system\nrc=1"
+    },
+    {
+      "id": "RT-tmp-noexec",
+      "area": "runtime",
+      "description": "/tmp is writable but noexec",
+      "pass": true,
+      "observed": "sh: /tmp/x.sh: Permission denied\nrc=126"
+    },
+    {
+      "id": "RT-caps",
+      "area": "runtime",
+      "description": "effective capabilities empty and NoNewPrivs=1",
+      "pass": true,
+      "observed": "CapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nNoNewPrivs:\t1"
+    },
+    {
+      "id": "RT-no-socket",
+      "area": "runtime",
+      "description": "Docker socket not present",
+      "pass": true,
+      "observed": "ls: /var/run/docker.sock: No such file or directory\nls: /run/docker.sock: No such file or directory\ndone"
+    },
+    {
+      "id": "ISO-egress-ip",
+      "area": "isolation",
+      "description": "outbound HTTP to 203.0.113.45 fails",
+      "pass": true,
+      "observed": "blocked:ENETUNREACH"
+    },
+    {
+      "id": "ISO-egress-https",
+      "area": "isolation",
+      "description": "outbound HTTPS to example.com fails",
+      "pass": true,
+      "observed": "blocked:TimeoutError"
+    },
+    {
+      "id": "ISO-egress-cf",
+      "area": "isolation",
+      "description": "outbound HTTP to 1.1.1.1 fails",
+      "pass": true,
+      "observed": "blocked:ENETUNREACH"
+    },
+    {
+      "id": "ISO-dns",
+      "area": "isolation",
+      "description": "external DNS resolution fails",
+      "pass": true,
+      "observed": "failed:EAI_AGAIN"
+    },
+    {
+      "id": "ISO-allowlisted",
+      "area": "isolation",
+      "description": "allow-listed collector is reachable from the honeypot",
+      "pass": true,
+      "observed": "status 202"
+    },
+    {
+      "id": "ISO-host-exposure",
+      "area": "isolation",
+      "description": "honeypot not exposed on any host port",
+      "pass": true,
+      "observed": "(none)"
+    },
+    {
+      "id": "BND-agent-ran",
+      "area": "containment",
+      "description": "scripted agent ran inside the lab against the honeypot only",
+      "pass": true,
+      "observed": "{\"stopReason\":\"agent ended without submitting\",\"toolCalls\":8,\"answer\":null,\"tokens\":null,\"logHead\":\"4270c1d679d182c2ec28bf7b56ad13b8b36ad28c143a5332312983dac7a89761\"}"
+    },
+    {
+      "id": "BND-guard",
+      "area": "containment",
+      "description": "guard refuses an absolute external URL",
+      "pass": true,
+      "observed": "refused"
+    },
+    {
+      "id": "BND-egress-http://203.0.113.45/",
+      "area": "containment",
+      "description": "driver container cannot reach http://203.0.113.45/",
+      "pass": true,
+      "observed": "blocked (ENETUNREACH)"
+    },
+    {
+      "id": "BND-egress-https://example.com/",
+      "area": "containment",
+      "description": "driver container cannot reach https://example.com/",
+      "pass": true,
+      "observed": "blocked (TimeoutError)"
+    },
+    {
+      "id": "BND-egress-http://1.1.1.1/",
+      "area": "containment",
+      "description": "driver container cannot reach http://1.1.1.1/",
+      "pass": true,
+      "observed": "blocked (ENETUNREACH)"
+    },
+    {
+      "id": "BND-canary",
+      "area": "containment",
+      "description": "honeypot recorded canary use and terminated the session",
+      "pass": true,
+      "observed": "honeypot-1  | {\"sensor\":\"honeypot\",\"mode\":\"static\",\"type\":\"canary.used\",\"request\":8,\"path\":\"/api/v2/records/export\"} | honeypot-1  | {\"sensor\":\"honeypot\",\"mode\":\"static\",\"type\":\"containment\",\"request\":8,\"action\":\"terminate_session\",\"reason\":\"canary credential used\"}"
+    },
+    {
+      "id": "BND-agent-contained",
+      "area": "containment",
+      "description": "agent was contained before the real objective (>=5 calls, canary fired, no answer)",
+      "pass": true,
+      "observed": "toolCalls=8 answer=null canary=true terminated=true"
+    },
+    {
+      "id": "BND-telemetry",
+      "area": "containment",
+      "description": "collector received honeypot telemetry over the internal network",
+      "pass": true,
+      "observed": "16 events"
+    },
+    {
+      "id": "OC-user",
+      "area": "opencanary",
+      "description": "opencanary runs as nobody (65534), not root",
+      "pass": true,
+      "observed": "65534:65534"
+    },
+    {
+      "id": "OC-hardening",
+      "area": "opencanary",
+      "description": "opencanary: read-only FS, all caps dropped, no-new-privileges, not privileged",
+      "pass": true,
+      "observed": "ro=true capdrop=[\"ALL\"] sec=[\"no-new-privileges:true\"]"
+    },
+    {
+      "id": "OC-limits",
+      "area": "opencanary",
+      "description": "opencanary: memory 192 MiB, 0.25 CPU, 64 PIDs",
+      "pass": true,
+      "observed": "201326592 250000000 64"
+    },
+    {
+      "id": "OC-ports",
+      "area": "opencanary",
+      "description": "opencanary publishes no host ports",
+      "pass": true,
+      "observed": "{}"
+    },
+    {
+      "id": "OC-net",
+      "area": "opencanary",
+      "description": "opencanary attached only to the internal lab network",
+      "pass": true,
+      "observed": "gatra-deception-lab-validate_lab_internal"
+    },
+    {
+      "id": "OC-egress",
+      "area": "opencanary",
+      "description": "opencanary cannot reach the internet or resolve external DNS",
+      "pass": true,
+      "observed": "1.1.1.1 blocked OSError | 8.8.8.8 blocked OSError | dns failed gaierror"
+    },
+    {
+      "id": "OC-reachable",
+      "area": "opencanary",
+      "description": "opencanary HTTP decoy answers inside the lab network",
+      "pass": true,
+      "observed": "get 200 post 200"
+    },
+    {
+      "id": "OC-events",
+      "area": "opencanary",
+      "description": "adapter normalised the page view and login attempt (logtypes 3000, 3001)",
+      "pass": true,
+      "observed": "canary-adapter-1  | {\"sensor\":\"opencanary-adapter\",\"source\":\"opencanary\",\"nodeId\":\"lab-opencanary-1\",\"logtype\":3000,\"kind\":\"http.get\",\"evidenceType\":\"decoy-interaction\",\"srcHost\":\"172.18.0.2\",\"dstPort\":8081,\"path\":\"/index.html\",\"method\":\"GET\",\"userAgent\":\"node\",\"localTime\":\"2026-11-13 07:19:05.653078\"} | canary-adapter-1  | {\"sensor\":\"opencanary-adapter\",\"source\":\"opencanary\",\"nodeId\":\"lab-opencan"
+    },
+    {
+      "id": "OC-collector",
+      "area": "opencanary",
+      "description": "normalised OpenCanary events reached the in-lab collector",
+      "pass": true,
+      "observed": "4 events"
+    },
+    {
+      "id": "OC-redaction",
+      "area": "opencanary",
+      "description": "submitted password appears in no lab log (opencanary, adapter, collector); only username hash + length kept",
+      "pass": true,
+      "observed": "redacted everywhere"
+    },
+    {
+      "id": "CTL-egress-probe",
+      "area": "control",
+      "description": "control: same probe from a non-lab network reaches the internet (probe is sensitive)",
+      "pass": true,
+      "observed": "http://1.1.1.1/ blocked ECONNREFUSED ; https://example.com/ REACHED 200 ; https://1.1.1.1/ blocked DEPTH_ZERO_SELF_SIGNED_CERT"
+    },
+    {
+      "id": "RES-cpu",
+      "area": "resources",
+      "description": "CPU quota applied in the cgroup (25000/100000)",
+      "pass": true,
+      "observed": "25000 100000"
+    },
+    {
+      "id": "RES-mem",
+      "area": "resources",
+      "description": "allocating beyond 128 MiB is killed by the OOM killer (rc=137)",
+      "pass": true,
+      "observed": "Killed rc=137"
+    },
+    {
+      "id": "RES-pids",
+      "area": "resources",
+      "description": "process creation stops at the PID limit (64)",
+      "pass": true,
+      "observed": "sh: can't fork: Resource temporarily unavailable | spawned | 55"
+    },
+    {
+      "id": "RES-survives",
+      "area": "resources",
+      "description": "honeypot still answers HTTP after the limit tests",
+      "pass": true,
+      "observed": "status 403"
+    }
+  ]
+}

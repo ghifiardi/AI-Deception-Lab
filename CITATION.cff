@@ -8,6 +8,7 @@ authors:
 license: MIT
 repository-code: "https://github.com/ghifiardi/AI-Deception-Lab"
 version: "1.0-preprint"
+doi: "10.5281/zenodo.24217354"
 date-released: "2026-11-14"
 keywords: [cyber deception, honeypot, canary token, LLM agents, AI security]
 preferred-citation:
@@ -17,4 +18,4 @@ preferred-citation:
     - family-names: Ghifiardi
       given-names: Raditio
   year: 2026
-  notes: "arXiv preprint (cs.CR). Add the arXiv ID and Zenodo DOI once assigned."
+  notes: "arXiv preprint (cs.CR). Add the arXiv ID once assigned."

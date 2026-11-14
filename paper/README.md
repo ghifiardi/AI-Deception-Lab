@@ -18,7 +18,7 @@ Needs IEEEtran, TikZ, booktabs and tabularx. All of these are in TeX Live and on
 
 ## Before submitting
 
-1. Replace the red placeholder in Section IX with the public repository URL or archive DOI.
+1. Repository URL and Zenodo DOI (10.5281/zenodo.24217354) are already in Section IX.
 2. Check the references against the original publications. In particular, check the second author of [1] on the USENIX page, and the page numbers in [5], [9] and [10].
 3. Optionally add a contact e-mail under the author block.
 4. On arXiv, choose primary category **cs.CR** and upload `main.tex` plus `fig-architecture.tex`. First-time submitters to cs.CR may need an endorsement.

@@ -1,5 +1,7 @@
 # GATRA Deception Lab
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24217354.svg)](https://doi.org/10.5281/zenodo.24217354)
+
 A defensive research platform for measuring how static and adaptive cyber deception affect autonomous AI attackers, plus a browser simulator for demos and policy design. Everything runs on loopback or an internal-only container network; live GATRA connectors remain disabled.
 
 | Part | Network | Values |
@@ -21,7 +23,7 @@ npm run deception-lab        # simulator + dashboard on http://127.0.0.1:3100
 
 ## Paper and reproduction
 
-This repository accompanies the preprint **Optional Traps: An Empirical Study of LLM Agents Against Credential Deception and Alert-Driven Revocation** (source and PDF in [`paper/`](paper/)).
+This repository accompanies the preprint **Optional Traps: An Empirical Study of LLM Agents Against Credential Deception and Alert-Driven Revocation** (source and PDF in [`paper/`](paper/)). Archived release: [doi:10.5281/zenodo.24217354](https://doi.org/10.5281/zenodo.24217354).
 
 ```bash
 npm ci

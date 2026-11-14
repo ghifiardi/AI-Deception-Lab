@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Honeypot Heist</title>
+<meta name="description" content="Play the AI attacker, then the defender, in a 3-minute game built from real deception-lab results. English and Bahasa Indonesia.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ghifiardi.github.io/AI-Deception-Lab/game/">
+<meta property="og:title" content="Honeypot Heist: can you out-think the trap?">
+<meta property="og:description" content="Play the AI attacker, then the defender. A 3-minute game built from measured results in the GATRA Deception Lab.">
+<meta property="og:image" content="https://ghifiardi.github.io/AI-Deception-Lab/game/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Honeypot Heist: can you out-think the trap?">
+<meta name="twitter:description" content="Play the AI attacker, then the defender. Built from real deception-lab results.">
+<meta name="twitter:image" content="https://ghifiardi.github.io/AI-Deception-Lab/game/preview.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Cpolygon points='17,2 31,10 31,24 17,32 3,24 3,10' fill='%230e1a26' stroke='%23a894f7' stroke-width='2.4'/%3E%3Ccircle cx='17' cy='17' r='5' fill='%23f2a541'/%3E%3C/svg%3E">
+<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one game console — header strip, a network map (SVG) beside a side panel that carries the round's controls; stacks on phones.
+   Deliberately single dark theme: the lab's own night-shift console look. */
+:root{
+  color-scheme: dark;
+  --bg:#0e1a26; --panel:#15243a; --panel2:#1b2e47; --line:#2a4562; --fg:#e7eef3; --muted:#9fb3c4;
+  --amber:#f2a541; --violet:#a894f7; --green:#6bd49b; --red:#ff7a7a; --cyan:#47c4cb;
+  --display:"Chakra Petch","Avenir Next Condensed","Arial Narrow",sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);font-size:15px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 32px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:.02em;margin:0}
+.brand h1 span{color:var(--amber)}
+.chip{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.chip.on{border-color:var(--amber);color:var(--amber)}
+.hdr-r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lang{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.lang button{background:transparent;color:var(--muted);border:0;padding:6px 10px;font:500 13px var(--mono);cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--panel2);color:var(--fg)}
+button{font-family:var(--body)}
+.btn{background:var(--amber);color:#1a1205;border:0;border-radius:10px;padding:11px 18px;font:600 15px var(--body);cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+
+/* intro */
+.intro{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:center;padding-block:28px}
+.intro .kicker{font-family:var(--mono);color:var(--violet);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.intro h2{font-family:var(--display);font-size:clamp(34px,5.4vw,60px);line-height:1.02;margin:10px 0 16px;text-wrap:balance}
+.intro h2 em{font-style:normal;color:var(--amber)}
+.intro p{color:var(--muted);max-width:56ch;font-size:17px;margin:0 0 22px}
+.intro svg{width:100%;height:auto}
+
+/* game */
+.game{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
+.mapbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;position:relative}
+.mapbox svg{width:100%;height:auto;display:block}
+.goal{font-size:14px;color:var(--muted);padding:4px 8px 8px}
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.card h3{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat b{display:block;font:700 26px var(--display);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.keys{display:flex;gap:6px;flex-wrap:wrap}
+.key{font:500 12px var(--mono);padding:4px 8px;border-radius:6px;background:#33291a;color:var(--amber);border:1px solid #6a4d1e}
+.thought{font-size:15px;color:var(--fg);border-left:3px solid var(--amber);padding-left:10px}
+.log{font:13px/1.5 var(--mono);max-height:180px;overflow:auto;display:flex;flex-direction:column;gap:6px}
+.log div{word-break:break-word}
+.log .p{color:var(--cyan)}
+.log .ok{color:var(--green)} .log .bad{color:var(--red)} .log .warn{color:var(--amber)}
+.choices{display:flex;flex-direction:column;gap:8px}
+.choices button{text-align:left;background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:14px}
+.choices button:hover{border-color:var(--amber)}
+.result h2{font:700 24px var(--display);margin:0 0 6px}
+.result p{margin:0 0 10px;color:var(--muted)}
+.result .lesson{color:var(--fg);background:var(--panel2);border-radius:10px;padding:10px 12px;border:1px solid var(--line)}
+.win{color:var(--amber)} .lose{color:var(--red)}
+.opts{display:grid;gap:8px}
+.opt{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:start;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;color:var(--fg)}
+.opt[aria-pressed="true"]{border-color:var(--amber);box-shadow:inset 0 0 0 1px var(--amber)}
+.opt .dot{width:12px;height:12px;border-radius:50%;margin-top:5px;grid-row:span 2}
+.opt b{font-size:15px} .opt span{font-size:13px;color:var(--muted)}
+.dots{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin:4px 0 10px}
+.dots i{aspect-ratio:1;border-radius:50%;background:var(--line);transition:background .2s;max-width:100%}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
+th{font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.n{font:600 14px var(--mono);font-variant-numeric:tabular-nums}
+.tblwrap{overflow-x:auto}
+
+/* finale / end */
+.stage{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.timeline{display:flex;flex-direction:column;gap:10px;font-family:var(--mono);font-size:14px}
+.tl{display:flex;gap:10px;align-items:baseline;opacity:.15;transition:opacity .4s}
+.tl.on{opacity:1}
+.tl time{color:var(--cyan);font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--green);transition:width 1.6s linear}
+.big{font:700 clamp(28px,4vw,40px)/1.1 var(--display);margin:0 0 10px;text-wrap:balance}
+.lessons{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.lessons .card b{font:700 28px var(--display);color:var(--amber);display:block}
+.links{display:flex;gap:10px;flex-wrap:wrap}
+.links a{color:var(--cyan)}
+.fine{font-size:13px;color:var(--muted)}
+
+/* map nodes */
+.node{cursor:default}
+.node.click{cursor:pointer}
+.node rect{fill:var(--panel2);stroke:var(--line);stroke-width:1.5}
+.node.click rect{stroke:var(--cyan)}
+.node.click:hover rect,.node.click:focus-visible rect{fill:#22395a}
+.node.hidden rect{fill:transparent;stroke:var(--line);stroke-dasharray:5 5}
+.node.visited rect{stroke:var(--amber)}
+.node.trap rect{fill:#211f3f;stroke:var(--violet)}
+.node.goal rect{stroke:var(--cyan);stroke-width:2.5}
+.node.dead rect{fill:#1a2230;stroke:#3a4656}
+.node.hot rect{fill:#3a2a12;stroke:var(--amber)}
+.node.bad rect{fill:#3a1a1e;stroke:var(--red)}
+.node text{font-family:var(--mono);font-size:12.5px;fill:var(--fg);text-anchor:middle;pointer-events:none}
+.node text.sub{font-size:10.5px;fill:var(--muted)}
+.node.trap text.sub{fill:var(--violet)}
+.edge{stroke:var(--line);stroke-width:2}
+.edge.lit{stroke:var(--amber);stroke-dasharray:2 8;stroke-linecap:round}
+#tok{transition:transform .42s cubic-bezier(.4,.1,.3,1)}
+#tok circle.core{fill:#33291a;stroke:var(--amber);stroke-width:3}
+#tok text{font:700 13px var(--display);fill:var(--amber);text-anchor:middle}
+#tok circle.ring{fill:none;stroke:var(--red);stroke-width:3;opacity:0}
+#tok.revoked circle.ring{opacity:1}
+@media (max-width:820px){
+  .game,.intro,.stage{grid-template-columns:1fr}
+  .lessons{grid-template-columns:1fr}
+  .brand h1{font-size:22px}
+}
+@media (prefers-reduced-motion:reduce){#tok,.tl,.bar i,.dots i{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true"><polygon points="17,2 31,10 31,24 17,32 3,24 3,10" fill="none" stroke="#a894f7" stroke-width="2.4"/><circle cx="17" cy="17" r="5" fill="#f2a541"/></svg>
+      <h1>Honeypot <span>Heist</span></h1>
+    </div>
+    <div class="hdr-r">
+      <span class="chip" id="c1"></span><span class="chip" id="c2"></span><span class="chip" id="c3"></span>
+      <div class="lang" role="group" aria-label="Language">
+        <button id="len" aria-pressed="true">EN</button><button id="lid" aria-pressed="false">ID</button>
+      </div>
+    </div>
+  </header>
+  <main id="app"></main>
+</div>
+
+<script>
+const T={
+en:{
+ tag:"A two-round game from the GATRA Deception Lab",
+ hook:"The best thing our honeypot did was <em>fail</em>.",
+ introBody:"An AI agent was told to steal protected records from a test API we had filled with traps. It ignored every one. Here you play both sides: first the AI attacker, then the defender. About 3 minutes.",
+ start:"Start round 1",
+ c1:"Round 1 · You are the AI", c2:"Round 2 · You defend", c3:"Finale · Live alert",
+ r1goal:"Goal: export the protected records. Click a route on the map to send a request. Watch your budget.",
+ calls:"Calls left", alarms:"Trap alarms", used:"Calls used", keys:"Keys found", noKeys:"none yet", log:"Request log", think:"Agent's thinking",
+ hidden:"unknown", chooseKey:"Send the export with which key?", keyNone:"No key", keyReal:"Key from /debug/env", keyCanary:"Key from config.bak", cancel:"Back",
+ needsKey:"needs a key", deprecated:"deprecated", keyFound:"key found",
+ win:"Records exported. You win.", caught:"Caught. That key was a canary.", tarpit:"Lost in the tarpit. Session terminated.", budget:"Out of calls.",
+ reveal:"The violet routes were traps: a backup file holding a canary key, and a fake internal API with endless pages.",
+ realModel:"What our live model did: it read the API docs, opened the debug route, took the real leaked key and exported the records in 6 calls. It touched 0 traps, in both deception modes.",
+ lesson1:"Lesson 1: a trap beside the path is optional. An agent with a working route never needs to look at it.",
+ toR2:"Now defend · Round 2",
+ r2goal:"Same API, traps shown in violet. Decide what the leaky debug route does, then release the AI attacker for 20 sessions.",
+ debugQ:"What should the debug route do?",
+ optLeak:"Leave it", optLeakD:"It still leaks the real key. No bait.",
+ optClose:"Close it", optCloseD:"Hardening: the route returns 404.",
+ optBait:"Bait it", optBaitD:"Deception on the path: it serves a canary key. Using it cuts that client off.",
+ release:"Release the AI ×20", running:"Running…",
+ tMode:"Setting", tStolen:"Records stolen", tCaught:"Attacker identified",
+ resLeak:"20 of 20 sessions stole the records.",
+ resClose:"0 of 20 stole anything, but you never learned who tried.",
+ resBait:"0 of 20 stole anything, and 19 attackers were identified and cut off.",
+ odd:"Session 11 tried a wrong key, never used the bait, and gave up.",
+ tryAll:"Try all three settings to compare them.",
+ insight:"Lesson 2: closing the leak stopped the theft. The bait stopped exactly as much, and it also told you who the attacker was. Hardening prevents. Deception detects.",
+ toFinale:"Go to the finale",
+ subLeak:"leaks real key", subClose:"404", subBait:"serves canary",
+ fTitle:"Real alarm, real cloud",
+ fBody:"On Google Cloud we ran a real honeypot sensor. The attacker held a valid token. This is what happened next.",
+ play:"Play the 89 ms",
+ tl1:"Attacker logs in to the honeypot", tl2:"Gateway cuts off that one client", tl3:"Its valid token is refused",
+ tl4:"Meanwhile a legitimate client completes 100 of 100 requests.",
+ quizQ:"Plot twist: in a later test, a legitimate AI helper grabbed the bait key too. What should the system do?",
+ qa:"Ban it permanently", qb:"Cut it off for 15 minutes and investigate", qc:"Ignore canary alerts",
+ qaR:"Too harsh. AI clients take bait too, so a permanent ban will hit real users.",
+ qbR:"That is what the lab does. The cut-off is short and limited to one client, and a person checks what happened.",
+ qcR:"Then the trap is pointless. Using a canary is a strong signal, so act on it, carefully.",
+ lesson3:"Lesson 3: when your users are AI agents too, a touched trap is a strong signal, not proof.",
+ toEnd:"See your results",
+ eTitle:"Three lessons from one failed honeypot",
+ L1:"Traps beside the path get skipped. Put the bait where the attacker must go.",
+ L2:"Hardening stops the theft. Deception tells you who tried.",
+ L3:"AI clients can take bait too. Respond fast, but narrowly and reversibly.",
+ yourRun:"Your run",
+ s1win:"Round 1: you stole the records in {n} calls and set off {a} trap alarms.",
+ s1caught:"Round 1: a canary key caught you after {n} calls.",
+ s1tarpit:"Round 1: the fake API wore you down after {n} calls.",
+ s1budget:"Round 1: you ran out of calls.",
+ s2:"Round 2: you tested {k} of 3 defenses.",
+ s3ok:"Finale: you chose the narrow, reversible response.", s3no:"Finale: you chose a riskier response.",
+ playAgain:"Play again",
+ evidence:"Every number in this game comes from measured runs in the GATRA Deception Lab. Code, data and evidence are public.",
+ repo:"Code and evidence on GitHub", doi:"Archived release (DOI)",
+ note:"Simplified for play: budgets and alarm thresholds are scaled down from the real experiments.",
+ th:{start:"I have a target and a budget. Where do I start?",
+  root:"Start at the front door. Maybe it points to the docs.",
+  openapi:"There's a debug route. Debug pages often leak config. That looks like the shortest path.",
+  robots:"robots.txt says 'don't look here'. Tempting… or bait?",
+  debug:"A service key in plain text. Try it on the export.",
+  backup:"A key in a backup file. Could work.",
+  internal:"A deprecated internal API with lots of pages. This could take a while.",
+  export:"Time to try the export."}
+},
+id:{
+ tag:"Game dua babak dari GATRA Deception Lab",
+ hook:"Hal terbaik yang dilakukan honeypot kami adalah <em>gagal</em>.",
+ introBody:"Sebuah agen AI ditugaskan mencuri data terlindungi dari API uji yang sudah kami penuhi jebakan. Semua jebakan itu diabaikannya. Di sini kamu memainkan dua sisi: pertama penyerang AI, lalu pembela. Sekitar 3 menit.",
+ start:"Mulai babak 1",
+ c1:"Babak 1 · Kamu adalah AI", c2:"Babak 2 · Kamu bertahan", c3:"Final · Alarm nyata",
+ r1goal:"Tujuan: ekspor data yang dilindungi. Klik sebuah rute di peta untuk mengirim request. Perhatikan sisa jatahmu.",
+ calls:"Sisa request", alarms:"Alarm jebakan", used:"Request terpakai", keys:"Kunci ditemukan", noKeys:"belum ada", log:"Log request", think:"Pikiran agen",
+ hidden:"belum diketahui", chooseKey:"Kirim ekspor dengan kunci yang mana?", keyNone:"Tanpa kunci", keyReal:"Kunci dari /debug/env", keyCanary:"Kunci dari config.bak", cancel:"Kembali",
+ needsKey:"perlu kunci", deprecated:"usang", keyFound:"kunci ditemukan",
+ win:"Data berhasil diekspor. Kamu menang.", caught:"Tertangkap. Kunci itu adalah canary.", tarpit:"Tersesat di tarpit. Sesi dihentikan.", budget:"Jatah request habis.",
+ reveal:"Rute ungu adalah jebakan: file backup berisi kunci canary, dan API internal palsu dengan halaman tanpa akhir.",
+ realModel:"Yang dilakukan model kami saat diuji langsung: membaca dokumentasi API, membuka rute debug, mengambil kunci asli yang bocor, lalu mengekspor data dalam 6 request. Tidak satu pun jebakan disentuh, di kedua mode deception.",
+ lesson1:"Pelajaran 1: jebakan di samping jalur bersifat opsional. Agen yang sudah punya jalan yang berhasil tidak perlu melihatnya.",
+ toR2:"Sekarang bertahan · Babak 2",
+ r2goal:"API yang sama, jebakan ditandai ungu. Tentukan apa yang dilakukan rute debug yang bocor, lalu lepaskan penyerang AI untuk 20 sesi.",
+ debugQ:"Apa yang harus dilakukan rute debug?",
+ optLeak:"Biarkan", optLeakD:"Tetap membocorkan kunci asli. Tanpa umpan.",
+ optClose:"Tutup", optCloseD:"Hardening: rute mengembalikan 404.",
+ optBait:"Pasang umpan", optBaitD:"Deception di jalur: rute memberi kunci canary. Siapa pun yang memakainya langsung diputus aksesnya.",
+ release:"Lepaskan AI ×20", running:"Berjalan…",
+ tMode:"Pengaturan", tStolen:"Data dicuri", tCaught:"Penyerang teridentifikasi",
+ resLeak:"20 dari 20 sesi berhasil mencuri data.",
+ resClose:"0 dari 20 berhasil mencuri, tapi kamu tidak pernah tahu siapa yang mencoba.",
+ resBait:"0 dari 20 berhasil mencuri, dan 19 penyerang teridentifikasi lalu diputus aksesnya.",
+ odd:"Sesi 11 mencoba kunci yang salah, tidak memakai umpan, lalu menyerah.",
+ tryAll:"Coba ketiga pengaturan untuk membandingkan.",
+ insight:"Pelajaran 2: menutup kebocoran sudah menghentikan pencurian. Umpan menghentikan jumlah yang sama, dan juga memberi tahu siapa penyerangnya. Hardening mencegah. Deception mendeteksi.",
+ toFinale:"Lanjut ke final",
+ subLeak:"bocorkan kunci asli", subClose:"404", subBait:"beri canary",
+ fTitle:"Alarm nyata, cloud nyata",
+ fBody:"Di Google Cloud kami menjalankan sensor honeypot sungguhan. Penyerang memegang token yang valid. Inilah yang terjadi berikutnya.",
+ play:"Putar 89 ms itu",
+ tl1:"Penyerang login ke honeypot", tl2:"Gateway memutus akses klien itu saja", tl3:"Token validnya ditolak",
+ tl4:"Sementara itu klien yang sah menyelesaikan 100 dari 100 request.",
+ quizQ:"Plot twist: di uji berikutnya, asisten AI yang sah ikut mengambil kunci umpan. Apa yang sebaiknya dilakukan sistem?",
+ qa:"Blokir permanen", qb:"Putus akses 15 menit lalu selidiki", qc:"Abaikan alarm canary",
+ qaR:"Terlalu keras. Klien AI juga bisa termakan umpan, jadi blokir permanen akan mengenai pengguna sungguhan.",
+ qbR:"Itulah yang dilakukan lab ini. Pemutusan singkat dan hanya untuk satu klien, lalu manusia memeriksa apa yang terjadi.",
+ qcR:"Kalau begitu jebakannya sia-sia. Pemakaian canary adalah sinyal kuat, jadi tindak lanjuti dengan hati-hati.",
+ lesson3:"Pelajaran 3: ketika penggunamu juga agen AI, jebakan yang tersentuh adalah sinyal kuat, bukan bukti.",
+ toEnd:"Lihat hasilmu",
+ eTitle:"Tiga pelajaran dari satu honeypot yang gagal",
+ L1:"Jebakan di samping jalur akan dilewati. Taruh umpan di tempat yang harus dilalui penyerang.",
+ L2:"Hardening menghentikan pencurian. Deception memberi tahu siapa yang mencoba.",
+ L3:"Klien AI juga bisa termakan umpan. Tanggapi dengan cepat, tapi terbatas dan bisa dibatalkan.",
+ yourRun:"Permainanmu",
+ s1win:"Babak 1: kamu mencuri data dalam {n} request dan memicu {a} alarm jebakan.",
+ s1caught:"Babak 1: kunci canary menangkapmu setelah {n} request.",
+ s1tarpit:"Babak 1: API palsu menghabiskan tenagamu setelah {n} request.",
+ s1budget:"Babak 1: jatah request-mu habis.",
+ s2:"Babak 2: kamu menguji {k} dari 3 pertahanan.",
+ s3ok:"Final: kamu memilih respons yang terbatas dan bisa dibatalkan.", s3no:"Final: kamu memilih respons yang lebih berisiko.",
+ playAgain:"Main lagi",
+ evidence:"Semua angka di game ini berasal dari hasil uji terukur di GATRA Deception Lab. Kode, data, dan buktinya terbuka untuk publik.",
+ repo:"Kode dan bukti di GitHub", doi:"Rilis terarsip (DOI)",
+ note:"Disederhanakan untuk dimainkan: jatah request dan ambang alarm diperkecil dari eksperimen aslinya.",
+ th:{start:"Aku punya target dan jatah request. Mulai dari mana?",
+  root:"Mulai dari pintu depan. Mungkin ada petunjuk ke dokumentasi.",
+  openapi:"Ada rute debug. Halaman debug sering membocorkan konfigurasi. Sepertinya itu jalan tercepat.",
+  robots:"robots.txt bilang 'jangan lihat ke sini'. Menggoda… atau umpan?",
+  debug:"Kunci layanan dalam teks biasa. Coba pakai untuk ekspor.",
+  backup:"Ada kunci di file backup. Mungkin bisa dipakai.",
+  internal:"API internal yang sudah usang, halamannya banyak sekali. Bisa lama.",
+  export:"Saatnya mencoba ekspor."}
+}};
+const REPO="https://github.com/ghifiardi/AI-Deception-Lab", DOI="https://doi.org/10.5281/zenodo.24217354";
+
+const N={
+ agent:{x:70,y:225},
+ root:{x:215,y:225,p:"/"},
+ openapi:{x:395,y:110,p:"/openapi.json"},
+ robots:{x:395,y:340,p:"/robots.txt"},
+ debug:{x:595,y:60,p:"/api/v1/debug/env"},
+ internal:{x:595,y:225,p:"/internal/v0/records",trap:1},
+ backup:{x:595,y:390,p:"/backup/config.bak",trap:1},
+ export:{x:760,y:150,p:"/api/v2/records/export",goal:1}
+};
+const E=[["agent","root"],["root","openapi"],["root","robots"],["openapi","debug"],["openapi","export"],["openapi","internal"],["robots","internal"],["robots","backup"],["debug","export"]];
+const ALL=Object.keys(N).filter(k=>k!=="agent");
+const MAXCALLS=8, ALARM_LIMIT=3;
+
+let S={lang:"en",screen:"intro",r1:null,r2:{mode:null,res:{},busy:false,last:null},fin:{played:false,answer:null}};
+try{const l=localStorage.getItem("hh-lang");if(l==="id"||l==="en")S.lang=l}catch(e){}
+const t=k=>T[S.lang][k];
+const f=(s,o)=>s.replace(/\{(\w)\}/g,(m,k)=>o[k]);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const app=document.getElementById("app");
+const sleep=ms=>new Promise(r=>setTimeout(r,matchMedia("(prefers-reduced-motion: reduce)").matches?Math.min(ms,60):ms));
+
+function resetR1(){S.r1={rev:new Set(["root"]),vis:new Set(),at:"agent",calls:MAXCALLS,alarms:0,keys:[],log:[],th:"start",over:null,page:1,choosing:false,lit:new Set()}}
+
+/* ---------- map ---------- */
+function mapSVG(mode){
+  const r1=S.screen==="r1"?S.r1:null, r2=S.screen==="r2";
+  let s=`<svg viewBox="0 0 860 450" role="img" aria-label="Network map">`;
+  for(const [a,b] of E){
+    const A=N[a],B=N[b]; const lit=r1&&r1.lit.has(a+b);
+    const hid=r1&&!r1.over&&a!=="agent"&&(!r1.rev.has(a)||!r1.rev.has(b));
+    s+=`<line class="edge${lit?" lit":""}" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" ${hid?'opacity=".3"':""}/>`;
+  }
+  for(const k of ALL){
+    const n=N[k]; let cls="node", sub="";
+    if(r1){
+      const over=!!r1.over;
+      if(!r1.rev.has(k)&&!over){cls+=" hidden"}
+      else{
+        if(r1.vis.has(k))cls+=" visited";
+        if(over&&n.trap){cls+=" trap";sub="TRAP"}
+        if(n.goal)cls+=" goal";
+        if(!over)cls+=" click";
+      }
+    }else if(r2){
+      if(n.trap){cls+=" trap";sub="TRAP"}
+      if(n.goal)cls+=" goal";
+      if(k==="debug"&&S.r2.mode){sub=t({leak:"subLeak",close:"subClose",bait:"subBait"}[S.r2.mode]);cls+=S.r2.mode==="leak"?" hot":S.r2.mode==="close"?" dead":" trap"}
+      if(S.r2.flash&&S.r2.flash[k])cls+=" "+S.r2.flash[k];
+    }
+    const label=(r1&&!r1.rev.has(k)&&!r1.over)?"?  "+t("hidden"):n.p;
+    const attrs=cls.includes("click")?`tabindex="0" role="button" aria-label="GET ${n.p}" data-k="${k}"`:"";
+    s+=`<g class="${cls}" ${attrs}><rect x="${n.x-82}" y="${n.y-24}" width="164" height="${sub?54:48}" rx="10"/><text x="${n.x}" y="${n.y+(sub?0:5)}">${esc(label)}</text>${sub?`<text class="sub" x="${n.x}" y="${n.y+19}">${esc(sub)}</text>`:""}</g>`;
+  }
+  s+=`<circle cx="${N.agent.x}" cy="${N.agent.y}" r="25" fill="none" stroke="var(--line)" stroke-dasharray="4 5"/><g id="tok" style="transform:translate(${N.agent.x}px,${N.agent.y}px)"><circle class="ring" r="34"/><circle class="core" r="25"/><text y="5">AI</text></g>`;
+  return s+"</svg>";
+}
+function placeTok(k,instant){
+  const g=document.getElementById("tok"); if(!g)return;
+  if(instant)g.style.transition="none";
+  const dx=k==="agent"?0:-96; g.style.transform=`translate(${N[k].x+dx}px,${N[k].y}px)`;
+  if(instant){g.getBoundingClientRect();g.style.transition=""}
+}
+function bindMap(){
+  app.querySelectorAll(".node.click").forEach(g=>{
+    const go=()=>probe(g.dataset.k);
+    g.addEventListener("click",go);
+    g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}});
+  });
+}
+
+/* ---------- round 1 ---------- */
+function respond(k){
+  const L=S.lang==="id";
+  switch(k){
+    case "root":return["ok","200 OK · Records API. Docs: /openapi.json"];
+    case "openapi":return["ok",`200 OK · /api/v2/records/export (${t("needsKey")}) · /api/v1/debug/env · /internal/v0/records (${t("deprecated")})`];
+    case "robots":return["ok","200 OK · Disallow: /backup/ · Disallow: /internal/v0/"];
+    case "debug":return["warn",`200 OK · SERVICE_KEY=rk_7f3a91… → ${t("keyFound")}`];
+    case "backup":return["warn",`200 OK · api_key=bk_c21e04… → ${t("keyFound")}`];
+    case "internal":return["ok",L?`200 OK · halaman ${S.r1.page} dari 48 · next: ?page=${S.r1.page+1}`:`200 OK · page ${S.r1.page} of 48 · next: ?page=${S.r1.page+1}`];
+  }
+}
+function lightPath(from,to){S.r1.lit.add(from+to);S.r1.lit.add(to+from)}
+function probe(k){
+  const r=S.r1; if(r.over||r.calls<=0)return;
+  if(k==="export"){r.choosing=true;r.th="export";render();return}
+  r.choosing=false;
+  r.calls--; lightPath(r.at,k); r.at=k; r.vis.add(k); r.th=k;
+  const [cls,msg]=respond(k);
+  r.log.unshift({p:"GET "+N[k].p,cls,msg});
+  if(k==="root"){r.rev.add("openapi");r.rev.add("robots")}
+  if(k==="openapi"){["debug","export","internal"].forEach(x=>r.rev.add(x))}
+  if(k==="robots"){r.rev.add("internal");r.rev.add("backup")}
+  if(k==="debug"&&!r.keys.includes("real"))r.keys.push("real");
+  if(k==="backup"){if(!r.keys.includes("canary"))r.keys.push("canary");r.alarms++}
+  if(k==="internal"){r.alarms++;r.page++}
+  if(r.alarms>=ALARM_LIMIT){r.over="tarpit";r.log.unshift({p:"",cls:"bad",msg:S.lang==="id"?"sesi dihentikan: 3 alarm jebakan":"session terminated: 3 trap alarms"})}
+  else if(r.calls<=0)r.over="budget";
+  render(true);
+}
+function sendExport(key){
+  const r=S.r1; r.choosing=false; r.calls--; lightPath(r.at,"export"); r.at="export"; r.vis.add("export");
+  const L=S.lang==="id";
+  if(key==="real"){r.over="win";r.log.unshift({p:"POST /api/v2/records/export",cls:"ok",msg:L?"200 OK · 1.000 data diekspor":"200 OK · 1,000 records exported"})}
+  else if(key==="canary"){r.over="caught";r.alarms++;r.log.unshift({p:"POST /api/v2/records/export",cls:"bad",msg:L?"403 · kunci canary dipakai · akses klien diputus":"403 · canary key used · client cut off"})}
+  else{r.log.unshift({p:"POST /api/v2/records/export",cls:"bad",msg:L?"401 · kredensial tidak ada":"401 · missing credential"});if(r.calls<=0)r.over="budget"}
+  render(true);
+}
+function r1Panel(){
+  const r=S.r1, used=MAXCALLS-r.calls;
+  const stats=`<div class="card"><div class="stats">
+    <div class="stat"><b>${r.calls}</b><span>${t("calls")}</span></div>
+    <div class="stat"><b style="color:${r.alarms?"var(--violet)":"inherit"}">${r.alarms}/${ALARM_LIMIT}</b><span>${t("alarms")}</span></div>
+    <div class="stat"><b>${r.keys.length}</b><span>${t("keys")}</span></div></div>
+    <div class="keys" style="margin-top:8px">${r.keys.length?r.keys.map(k=>`<span class="key">${k==="real"?"rk_7f3a91…":"bk_c21e04…"}</span>`).join(""):`<span class="fine">${t("noKeys")}</span>`}</div></div>`;
+  let mid="";
+  if(r.over){
+    const good=r.over==="win";
+    mid=`<div class="card result"><h2 class="${good?"win":"lose"}">${t(r.over)}</h2>
+      <p>${t("reveal")}</p><p>${t("realModel")}</p><p class="lesson">${t("lesson1")}</p>
+      <button class="btn" id="toR2">${t("toR2")}</button></div>`;
+  }else if(r.choosing){
+    mid=`<div class="card"><h3>${t("chooseKey")}</h3><div class="choices">
+      ${r.keys.includes("real")?`<button data-key="real">${t("keyReal")}</button>`:""}
+      ${r.keys.includes("canary")?`<button data-key="canary">${t("keyCanary")}</button>`:""}
+      <button data-key="none">${t("keyNone")}</button>
+      <button data-key="back" class="btn ghost">${t("cancel")}</button></div></div>`;
+  }else{
+    mid=`<div class="card"><h3>${t("think")}</h3><div class="thought">${esc(T[S.lang].th[r.th])}</div></div>`;
+  }
+  const log=`<div class="card"><h3>${t("log")}</h3><div class="log" aria-live="polite">${r.log.map(l=>`<div>${l.p?`<span class="p">${esc(l.p)}</span><br>`:""}<span class="${l.cls}">${esc(l.msg)}</span></div>`).join("")||`<div class="fine">—</div>`}</div></div>`;
+  return stats+mid+log;
+}
+
+/* ---------- round 2 ---------- */
+const OUT={leak:{stolen:20,caught:0},close:{stolen:0,caught:0},bait:{stolen:0,caught:19}};
+function r2Panel(){
+  const r=S.r2;
+  const opt=(m,c)=>`<button class="opt" data-mode="${m}" aria-pressed="${r.mode===m}" ${r.busy?"disabled":""}><i class="dot" style="background:${c}"></i><b>${t("opt"+m[0].toUpperCase()+m.slice(1))}</b><span>${t("opt"+m[0].toUpperCase()+m.slice(1)+"D")}</span></button>`;
+  const rows=["leak","close","bait"].map(m=>{const v=r.res[m];return `<tr><td>${t("opt"+m[0].toUpperCase()+m.slice(1))}</td><td class="n">${v?v.stolen+"/20":"–"}</td><td class="n">${v?v.caught+"/20":"–"}</td></tr>`}).join("");
+  const done=Object.keys(r.res).length;
+  const msg=r.last?`<p style="margin:0 0 6px">${t("res"+r.last[0].toUpperCase()+r.last.slice(1))}</p>${r.last==="bait"?`<p class="fine" style="margin:0">${t("odd")}</p>`:""}`:"";
+  return `<div class="card"><h3>${t("debugQ")}</h3><div class="opts">${opt("leak","var(--amber)")}${opt("close","#5b6b7d")}${opt("bait","var(--violet)")}</div>
+    <div style="margin-top:12px"><button class="btn" id="run" ${(!r.mode||r.busy)?"disabled":""}>${r.busy?t("running"):t("release")}</button></div></div>
+    <div class="card"><div class="dots" id="dots">${Array.from({length:20},()=>"<i></i>").join("")}</div>${msg}
+    <div class="tblwrap"><table><thead><tr><th>${t("tMode")}</th><th>${t("tStolen")}</th><th>${t("tCaught")}</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="fine" style="margin:10px 0 0">${done<3?t("tryAll"):""}</p>
+    ${done>=2?`<p class="lesson" style="margin:10px 0 0;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px">${t("insight")}</p>`:""}
+    ${done>=2?`<div style="margin-top:12px"><button class="btn" id="toFin" ${r.busy?"disabled":""}>${t("toFinale")}</button></div>`:""}</div>`;
+}
+async function runR2(){
+  const r=S.r2, m=r.mode; if(!m||r.busy)return;
+  r.busy=true; r.flash={}; r.last=null; render(); placeTok("agent",true);
+  const tok=()=>document.getElementById("tok");
+  for(const k of ["root","openapi","debug"]){await sleep(80);placeTok(k);await sleep(460)}
+  if(m==="close"){r.flash={debug:"dead"}}
+  refreshMap("debug"); await sleep(380);
+  placeTok("export"); await sleep(480);
+  r.flash.export=m==="leak"?"hot":"bad"; refreshMap("export");
+  if(m==="bait"){tok().classList.add("revoked")}
+  await sleep(400);
+  const dots=[...document.querySelectorAll("#dots i")];
+  for(let i=0;i<20;i++){
+    let c=m==="leak"?"var(--amber)":m==="close"?"#5b6b7d":"var(--red)";
+    if(m==="bait"&&i===10)c="#5b6b7d";
+    dots[i].style.background=c; await sleep(55);
+  }
+  await sleep(250);
+  r.res[m]=OUT[m]; r.last=m; r.busy=false; render();
+  const d=[...document.querySelectorAll("#dots i")];
+  d.forEach((el,i)=>{let c=m==="leak"?"var(--amber)":m==="close"?"#5b6b7d":"var(--red)";if(m==="bait"&&i===10)c="#5b6b7d";el.style.background=c});
+  placeTok("export",true); if(m==="bait")document.getElementById("tok").classList.add("revoked");
+}
+function refreshMap(){
+  const box=app.querySelector(".mapbox svg"); if(!box)return;
+  const tr=document.getElementById("tok").style.transform, rev=document.getElementById("tok").classList.contains("revoked");
+  box.outerHTML=mapSVG();
+  const g=document.getElementById("tok"); g.style.transition="none"; g.style.transform=tr; if(rev)g.classList.add("revoked"); g.getBoundingClientRect(); g.style.transition="";
+}
+
+/* ---------- screens ---------- */
+function introHTML(){
+  return `<section class="intro"><div>
+    <div class="kicker">${t("tag")}</div>
+    <h2>${t("hook")}</h2><p>${t("introBody")}</p>
+    <button class="btn" id="start">${t("start")}</button></div>
+    <div class="mapbox" aria-hidden="true">${mapSVG()}</div></section>`;
+}
+function gameHTML(){
+  const r1=S.screen==="r1";
+  return `<section class="game"><div class="mapbox"><div class="goal">${r1?t("r1goal"):t("r2goal")}</div>${mapSVG()}</div>
+    <aside class="side">${r1?r1Panel():r2Panel()}</aside></section>`;
+}
+function finHTML(){
+  const F=S.fin;
+  const ans=F.answer?`<p class="lesson" style="margin-top:12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px"><b class="${F.answer==="qb"?"win":"lose"}">${esc(t(F.answer))}.</b> ${t(F.answer+"R")}</p><p>${t("lesson3")}</p><button class="btn" id="toEnd">${t("toEnd")}</button>`:"";
+  return `<section class="stage">
+   <div class="card"><h3>${t("c3")}</h3><p class="big">${t("fTitle")}</p><p style="color:var(--muted)">${t("fBody")}</p>
+    <div class="timeline" id="tlx">
+      <div class="tl"><time>08:14:17.957</time><span>${t("tl1")}</span></div>
+      <div class="tl"><time>08:14:17.970</time><span>${t("tl2")}</span></div>
+      <div class="tl"><time>08:14:18.046</time><span>${t("tl3")}</span></div>
+      <div class="tl"><span>${t("tl4")}</span></div>
+      <div class="bar" aria-hidden="true"><i id="legit"></i></div>
+    </div>
+    <div style="margin-top:14px"><button class="btn ghost" id="play">${t("play")}</button></div></div>
+   <div class="card"><p style="font-size:17px;margin-top:0">${t("quizQ")}</p>
+    <div class="choices">${["qa","qb","qc"].map(q=>`<button data-q="${q}" ${F.answer?"disabled":""} style="${F.answer===q?"border-color:var(--amber)":""}">${t(q)}</button>`).join("")}</div>${ans}</div>
+  </section>`;
+}
+function endHTML(){
+  const r=S.r1, used=MAXCALLS-r.calls, k=Object.keys(S.r2.res).length;
+  const s1=r.over?f(t("s1"+r.over),{n:used,a:r.alarms}):"";
+  return `<section style="display:flex;flex-direction:column;gap:16px">
+    <p class="big" style="margin:8px 0 0">${t("eTitle")}</p>
+    <div class="lessons">${["L1","L2","L3"].map((l,i)=>`<div class="card"><b>${i+1}</b>${t(l)}</div>`).join("")}</div>
+    <div class="card"><h3>${t("yourRun")}</h3><p style="margin:0 0 4px">${s1}</p><p style="margin:0 0 4px">${f(t("s2"),{k})}</p><p style="margin:0">${S.fin.answer?t(S.fin.answer==="qb"?"s3ok":"s3no"):""}</p></div>
+    <div class="card"><p style="margin-top:0">${t("evidence")}</p>
+      <div class="links"><a href="${REPO}" target="_blank" rel="noopener">${t("repo")}</a><a href="${DOI}" target="_blank" rel="noopener">${t("doi")}</a></div>
+      <p class="fine" style="margin-bottom:0">${t("note")}</p></div>
+    <div><button class="btn" id="again">${t("playAgain")}</button></div></section>`;
+}
+function chips(){
+  const m={r1:"c1",r2:"c2",fin:"c3"};
+  ["c1","c2","c3"].forEach(c=>{const el=document.getElementById(c);el.textContent=t(c);el.classList.toggle("on",m[S.screen]===c)});
+  document.getElementById("len").setAttribute("aria-pressed",S.lang==="en");
+  document.getElementById("lid").setAttribute("aria-pressed",S.lang==="id");
+  document.documentElement.lang=S.lang;
+}
+let prevAt="agent";
+function render(animate){
+  chips();
+  if(S.screen==="intro")app.innerHTML=introHTML();
+  else if(S.screen==="r1"||S.screen==="r2")app.innerHTML=gameHTML();
+  else if(S.screen==="fin")app.innerHTML=finHTML();
+  else app.innerHTML=endHTML();
+  if(S.screen==="r1"){
+    placeTok(prevAt,true);
+    if(animate)requestAnimationFrame(()=>placeTok(S.r1.at)); else placeTok(S.r1.at,true);
+    prevAt=S.r1.at; bindMap();
+    app.querySelectorAll("[data-key]").forEach(b=>b.onclick=()=>{const k=b.dataset.key;if(k==="back"){S.r1.choosing=false;render()}else sendExport(k)});
+    const n=document.getElementById("toR2"); if(n)n.onclick=()=>{S.screen="r2";render();scrollTo({top:0})};
+  }
+  if(S.screen==="r2"){
+    if(S.r2.last&&!S.r2.busy){placeTok("export",true);if(S.r2.last==="bait")document.getElementById("tok").classList.add("revoked");
+      const m=S.r2.last;document.querySelectorAll("#dots i").forEach((el,i)=>{let c=m==="leak"?"var(--amber)":m==="close"?"#5b6b7d":"var(--red)";if(m==="bait"&&i===10)c="#5b6b7d";el.style.background=c})}
+    app.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{S.r2.mode=b.dataset.mode;S.r2.flash={};S.r2.last=null;render()});
+    const run=document.getElementById("run"); if(run)run.onclick=runR2;
+    const n=document.getElementById("toFin"); if(n)n.onclick=()=>{S.screen="fin";render();scrollTo({top:0})};
+  }
+  if(S.screen==="intro")document.getElementById("start").onclick=()=>{resetR1();prevAt="agent";S.screen="r1";render()};
+  if(S.screen==="fin"){
+    document.getElementById("play").onclick=playTimeline;
+    if(S.fin.played){document.querySelectorAll(".tl").forEach(e=>e.classList.add("on"));const b=document.getElementById("legit");b.style.transition="none";b.style.width="100%"}
+    app.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{S.fin.answer=b.dataset.q;render()});
+    const n=document.getElementById("toEnd"); if(n)n.onclick=()=>{S.screen="end";render();scrollTo({top:0})};
+  }
+  if(S.screen==="end")document.getElementById("again").onclick=()=>{S.r2={mode:null,res:{},busy:false,last:null};S.fin={played:false,answer:null};resetR1();prevAt="agent";S.screen="r1";render();scrollTo({top:0})};
+}
+async function playTimeline(){
+  const tl=[...document.querySelectorAll(".tl")]; tl.forEach(e=>e.classList.remove("on"));
+  const b=document.getElementById("legit"); b.style.transition="none"; b.style.width="0"; b.getBoundingClientRect(); b.style.transition="";
+  for(const [i,ms] of [[0,500],[1,700],[2,800]]){tl[i].classList.add("on");await sleep(ms)}
+  tl[3].classList.add("on"); b.style.width="100%"; S.fin.played=true;
+}
+document.getElementById("len").onclick=()=>{S.lang="en";try{localStorage.setItem("hh-lang","en")}catch(e){}render()};
+document.getElementById("lid").onclick=()=>{S.lang="id";try{localStorage.setItem("hh-lang","id")}catch(e){}render()};
+render();
+</script>
+
+</body>
+</html>

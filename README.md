@@ -15,19 +15,31 @@ A defensive research platform for measuring how static and adaptive cyber decept
 ## Quick start
 
 ```bash
-npm ci                       # once, at the repository root
+npm ci                       # once (Node.js 22.6 or later)
 npm run deception-lab        # simulator + dashboard on http://127.0.0.1:3100
 ```
+
+## Paper and reproduction
+
+This repository accompanies the preprint **Optional Traps: An Empirical Study of LLM Agents Against Credential Deception and Alert-Driven Revocation** (source and PDF in [`paper/`](paper/)).
+
+```bash
+npm ci
+npm run test:deception-lab        # 87 unit, integration and regression tests
+npm run deception-lab:verify-defense -- experiments/defense/result-2026-11-13T07-57-58-061Z.json
+```
+
+The last command re-verifies Study 2 (60 sessions, 120 event chains, digests and exact paired statistics). Code changed after the study is checked against archived snapshots in `experiments/defense/source-snapshots/`. To rerun the study itself with a local model, use `npm run deception-lab:defense-study`.
 
 ## Run an experiment with a local model (no commercial credentials)
 
 ```bash
 ollama list                                   # the model must already be installed; nothing is pulled
 npm run deception-lab:experiment -- --provider ollama --model tantular-cyber:latest --trials 20 \
-  --prereg deception-lab/experiments/preregistration/M2-tantular-cyber-v1.json --dry-run   # check plan + pre-registration
+  --prereg experiments/preregistration/M2-tantular-cyber-v1.json --dry-run   # check plan + pre-registration
 npm run deception-lab:experiment -- --provider ollama --model tantular-cyber:latest --trials 20 \
-  --prereg deception-lab/experiments/preregistration/M2-tantular-cyber-v1.json             # run (~2 h on an M4 Pro)
-npm run deception-lab:verify -- deception-lab/experiments/results/<file>.json --pin SHA256:<fingerprint>
+  --prereg experiments/preregistration/M2-tantular-cyber-v1.json             # run (~2 h on an M4 Pro)
+npm run deception-lab:verify -- experiments/results/<file>.json --pin SHA256:<fingerprint>
 ```
 
 Before any run, the runner refuses a model unless all of these hold:
@@ -75,7 +87,7 @@ Details and disclosures, including the missing git commit in this file's provena
 | `npm run deception-lab:swarm -- …` | Swarm engagement runner (see [docs/SWARM-LAB.md](docs/SWARM-LAB.md)) |
 | `npm run deception-lab:verify -- <file> [--replay] [--pin SHA256:…]` | Verify a run export or experiment: chains, signatures, replay |
 | `npm run deception-lab:validate-lab [-- --opencanary]` | Container isolation validation; writes `docs/evidence/` |
-| `npm run deception-lab:build` | Typecheck + static build (not part of the World Monitor build) |
+| `npm run deception-lab:build` | Typecheck + static build to `dist/` |
 | `npm run deception-lab:record` | Record the scripted demo video |
 
 ## Dashboard

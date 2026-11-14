@@ -23,7 +23,7 @@ Start times below were measured by `npm run deception-lab:record` (written to `r
 
 ## Recording checklist
 
-1. `npm ci` (once), then `npm run deception-lab:record`. Output goes to `deception-lab/recordings/gatra-deception-lab-demo.{webm,mp4}` at 1920×1080.
+1. `npm ci` (once), then `npm run deception-lab:record`. Output goes to `recordings/gatra-deception-lab-demo.{webm,mp4}` at 1920×1080.
 2. Without Playwright's bundled Chromium, the recorder opens a visible Google Chrome window. Leave it alone until it closes. `npx playwright install chromium` lets it run headless.
 3. Manual option: run `npm run deception-lab`, open `http://127.0.0.1:3100/?demo=1` in a 1920×1080 browser window, and record with QuickTime or OBS. Press <kbd>Esc</kbd> to stop.
 4. If you add a voice-over, read the captions as written. They avoid performance claims on purpose.

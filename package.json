@@ -1,0 +1,33 @@
+{
+  "name": "ai-deception-lab",
+  "version": "1.0.0-preprint",
+  "private": true,
+  "description": "Lab, evidence and paper source for 'Optional Traps: An Empirical Study of LLM Agents Against Credential Deception and Alert-Driven Revocation'.",
+  "license": "MIT",
+  "author": "Raditio Ghifiardi",
+  "repository": { "type": "git", "url": "https://github.com/ghifiardi/AI-Deception-Lab.git" },
+  "type": "module",
+  "engines": { "node": ">=22.6" },
+  "scripts": {
+    "deception-lab": "vite --config vite.config.ts",
+    "deception-lab:build": "tsc -p . && vite build --config vite.config.ts",
+    "deception-lab:typecheck": "tsc -p .",
+    "test:deception-lab": "node --experimental-strip-types --no-warnings --test 'tests/*.test.ts'",
+    "deception-lab:smoke": "node scripts/smoke.mjs",
+    "deception-lab:record": "node scripts/record-demo.mjs",
+    "deception-lab:verify": "node --experimental-strip-types --no-warnings scripts/verify-log.ts",
+    "deception-lab:verify-defense": "node --experimental-strip-types --no-warnings scripts/verify-defense.mjs",
+    "deception-lab:experiment": "node experiments/run.mjs",
+    "deception-lab:defense-study": "node experiments/defense/run.mjs",
+    "deception-lab:validate-lab": "node scripts/validate-lab.mjs",
+    "deception-lab:swarm": "node experiments/swarm/run.mjs",
+    "test": "npm run test:deception-lab"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.1"
+  }
+}

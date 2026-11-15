@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Honeypot Maze</title>
+<meta name="description" content="A 10-minute story game: sneak through a network maze as an AI agent, then set the traps as the defender. Built from measured deception-lab results. English and Bahasa Indonesia.">
+<meta property="og:type" content="website"><meta property="og:url" content="https://ghifiardi.github.io/AI-Deception-Lab/maze/">
+<meta property="og:title" content="Honeypot Maze: the AI that walked past every trap">
+<meta property="og:description" content="Five chapters. Play the AI agent, then the defender. Built from measured results in the GATRA Deception Lab.">
+<meta property="og:image" content="https://ghifiardi.github.io/AI-Deception-Lab/maze/preview.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Honeypot Maze"><meta name="twitter:description" content="Play the AI agent, then the defender. A story game built from real deception-lab results."><meta name="twitter:image" content="https://ghifiardi.github.io/AI-Deception-Lab/maze/preview.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Cpolygon points='17,2 31,10 31,24 17,32 3,24 3,10' fill='%230e1a26' stroke='%23a894f7' stroke-width='2.4'/%3E%3Ccircle cx='17' cy='17' r='5' fill='%23f2a541'/%3E%3C/svg%3E">
+<style>html,body{margin:0}[hidden]{display:none!important}</style>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: story cards between chapters; during play a maze canvas (left) beside a mission panel (right), stacking on phones.
+   Deliberately single dark theme: the lab's night-shift console. Amber = the AI agent, violet = traps, cyan = real routes, green = defense. */
+:root{
+  color-scheme:dark;
+  --bg:#0e1a26; --panel:#15243a; --panel2:#1b2e47; --line:#2a4562; --fg:#e7eef3; --muted:#9fb3c4;
+  --amber:#f2a541; --violet:#a894f7; --green:#6bd49b; --red:#ff7a7a; --cyan:#47c4cb;
+  --display:"Chakra Petch","Avenir Next Condensed","Arial Narrow",sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);font-size:15px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 28px}
+.wrap{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font:700 24px var(--display);letter-spacing:.02em;margin:0}
+.brand h1 span{color:var(--amber)}
+.hdr-r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.chip.on{border-color:var(--amber);color:var(--amber)}
+.lang{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.lang button{background:transparent;color:var(--muted);border:0;padding:6px 10px;font:500 13px var(--mono);cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--panel2);color:var(--fg)}
+.btn{background:var(--amber);color:#1a1205;border:0;border-radius:10px;padding:11px 18px;font:600 15px var(--body);cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn.sm{padding:8px 12px;font-size:14px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+a{color:var(--cyan)}
+.fine{font-size:13px;color:var(--muted)}
+
+/* title */
+.title{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:28px;align-items:center;padding-block:18px}
+.kicker{font:500 13px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--violet)}
+.title h2{font:700 clamp(34px,5.2vw,58px)/1.02 var(--display);margin:10px 0 14px;text-wrap:balance}
+.title h2 em{font-style:normal;color:var(--amber)}
+.title p{color:var(--muted);font-size:17px;max-width:54ch;margin:0 0 18px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.chlist{display:grid;gap:6px;margin-top:18px}
+.chlist button{display:flex;gap:10px;align-items:baseline;text-align:left;background:var(--panel);border:1px solid var(--line);color:var(--fg);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:14px}
+.chlist button b{font:600 12px var(--mono);color:var(--amber);min-width:34px}
+.chlist button:disabled{opacity:.4;cursor:not-allowed}
+.chlist button span.s{margin-left:auto;font:500 12px var(--mono);color:var(--muted)}
+
+/* story */
+.story{max-width:760px;margin:6vh auto 0;width:100%}
+.scard{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px 26px 20px;min-height:250px;display:flex;flex-direction:column;gap:14px}
+.who{display:flex;align-items:center;gap:12px}
+.avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:700 15px var(--display);flex:none}
+.who b{font:600 13px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.say{font-size:clamp(18px,2.3vw,22px);line-height:1.45;margin:0;text-wrap:pretty}
+.say.chapter{font:700 clamp(28px,4vw,44px)/1.1 var(--display);color:var(--fg)}
+.say.lesson{border-left:4px solid var(--amber);padding-left:14px}
+.pips{display:flex;gap:6px;margin-top:auto}
+.pips i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.pips i.on{background:var(--amber)}
+.snav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px}
+
+/* play */
+.play{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:14px;align-items:start}
+.mapbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;position:relative;min-width:0}
+.mapbox canvas{display:block;margin:0 auto;touch-action:none;border-radius:6px}
+.obj{font-size:14px;color:var(--muted);padding:2px 4px 8px}
+.obj b{color:var(--fg)}
+.banner{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font:700 clamp(22px,4vw,40px) var(--display);letter-spacing:.04em;padding:10px 22px;border-radius:12px;background:rgba(14,26,38,.88);border:2px solid currentColor;pointer-events:none;white-space:nowrap}
+.toast{position:absolute;left:12px;right:12px;top:44px;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast div{background:rgba(21,36,58,.95);border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:8px;padding:8px 10px;font-size:13px;animation:fade 4.2s forwards}
+@keyframes fade{0%{opacity:0;transform:translateY(-4px)}8%{opacity:1;transform:none}85%{opacity:1}100%{opacity:0}}
+.modal{position:absolute;inset:0;background:rgba(8,14,22,.72);display:grid;place-items:center;padding:14px;border-radius:14px}
+.modal .box{background:var(--panel);border:1px solid var(--amber);border-radius:14px;padding:16px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:10px}
+.modal h3{margin:0;font:700 19px var(--display)}
+.modal p{margin:0;color:var(--muted);font-size:14px}
+.choices{display:flex;flex-direction:column;gap:8px}
+.choices button{text-align:left;background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:14px}
+.choices button:hover{border-color:var(--amber)}
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.card h3{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat b{display:block;font:700 24px var(--display);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.meter{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:4px}
+.meter i{display:block;height:100%;background:var(--amber);transition:width .25s}
+.keys{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.key{font:500 12px var(--mono);padding:3px 8px;border-radius:6px;background:#33291a;color:var(--amber);border:1px solid #6a4d1e}
+.thought{border-left:3px solid var(--amber);padding-left:10px;font-size:15px}
+.loc{font:500 13px var(--mono);color:var(--cyan);margin-bottom:6px;word-break:break-all}
+.log{font:12.5px/1.5 var(--mono);max-height:150px;overflow:auto;display:flex;flex-direction:column;gap:5px}
+.log div{word-break:break-word}
+.ok{color:var(--green)} .bad{color:var(--red)} .warn{color:var(--amber)} .vio{color:var(--violet)} .cy{color:var(--cyan)}
+.dpad{display:none;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,46px);gap:6px;justify-content:center;margin-top:10px}
+.dpad button{background:var(--panel2);border:1px solid var(--line);color:var(--fg);border-radius:10px;font-size:18px;cursor:pointer}
+.dpad .u{grid-column:2}.dpad .l{grid-column:1;grid-row:2}.dpad .d{grid-column:2;grid-row:2}.dpad .r{grid-column:3;grid-row:2}
+@media (hover:none),(max-width:820px){.dpad{display:grid}}
+.result h2{font:700 23px var(--display);margin:0 0 6px}
+.result p{margin:0 0 10px;color:var(--muted)}
+.opts{display:grid;gap:7px}
+.opt{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:start;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;text-align:left;color:var(--fg)}
+.opt[aria-pressed="true"]{border-color:var(--amber);box-shadow:inset 0 0 0 1px var(--amber)}
+.opt .dot{width:12px;height:12px;border-radius:50%;margin-top:5px;grid-row:span 2}
+.opt b{font-size:14.5px}.opt span{font-size:13px;color:var(--muted)}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-size:14px}
+.toggle button{min-width:64px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
+th{font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.n{font:600 13.5px var(--mono);font-variant-numeric:tabular-nums}
+.tblwrap{overflow-x:auto}
+.goals{display:flex;flex-direction:column;gap:4px;font-size:14px;margin-top:8px}
+.goals .done{color:var(--green)}
+.tl{display:flex;gap:10px;font:13.5px var(--mono);margin:4px 0}
+.tl time{color:var(--cyan);white-space:nowrap}
+
+/* end */
+.endgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.endgrid .card b{font:700 26px var(--display);color:var(--amber);display:block}
+.big{font:700 clamp(28px,4vw,42px)/1.1 var(--display);margin:6px 0 4px;text-wrap:balance}
+.score{font:700 clamp(40px,6vw,64px) var(--display);color:var(--amber);font-variant-numeric:tabular-nums}
+@media (max-width:980px){.endgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:820px){
+  .play,.title{grid-template-columns:1fr}
+  .brand h1{font-size:21px}
+  .scard{padding:20px}
+}
+@media (max-width:480px){.endgrid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.toast div{animation:none}.meter i{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 34 34" aria-hidden="true"><polygon points="17,2 31,10 31,24 17,32 3,24 3,10" fill="none" stroke="#a894f7" stroke-width="2.4"/><circle cx="17" cy="17" r="5" fill="#f2a541"/></svg>
+      <h1>Honeypot <span>Maze</span></h1>
+    </div>
+    <div class="hdr-r">
+      <span class="chip" id="chip" hidden></span>
+      <div class="lang" role="group" aria-label="Language"><button id="len">EN</button><button id="lid">ID</button></div>
+    </div>
+  </header>
+  <main id="app"></main>
+</div>
+
+<script>
+/* ===================== text ===================== */
+const TX={
+en:{
+ kicker:"A story game from the GATRA Deception Lab",
+ hook:"The best thing our honeypot did was <em>fail</em>.",
+ intro:"Five chapters, about ten minutes. First you are the AI agent sneaking through a network maze full of traps. Then you switch sides and decide where the traps should go.",
+ start:"Start the story", resume:"Continue chapter {n}", chapters:"Chapters", locked:"locked", shortGame:"Short version (3 min)",
+ ch:"Chapter", next:"Next", skip:"Skip", back:"Back", retry:"Try again", cont:"Continue", contStory:"Continue the story", giveUp:"Give up",
+ c:["","Recon","The Leak","Bait on the Path","Rebuild the Maze","Swarm Night"],
+ o:["","Find the API docs room <b>API</b>. Move with the arrow keys, WASD, a swipe or the pad.","Find a key and open the <b>DATA</b> vault. Some rooms are not what they seem. Three trap alarms end your session.","Same network, same job. Get the records out of the <b>DATA</b> vault.","Choose what the leak room does, then release 20 agents. Goal: no records stolen, and know who tried.","A real sensor, a swarm of attackers and one helpful AI client. Every alert pauses the clock until you decide."],
+ budget:"Budget", alarms:"Trap alarms", keys:"Keys", noKeys:"no keys yet", at:"Location", log:"Responses", think:"Agent's thinking",
+ room:{root:"/",api:"/openapi.json",txt:"/robots.txt",dbg:"/api/v1/debug/env",bak:"/backup/config.bak",int:"/internal/v0/records",vault:"/api/v2/records/export",hp:"ssh honeypot (port 22)"},
+ r:{root:"200 · Records API. Docs at /openapi.json",
+  api:"200 · routes: /export (needs a key) · /debug/env · /internal/v0 (deprecated)",
+  txt:"200 · Disallow: /backup/ · Disallow: /internal/",
+  dbg:"200 · SERVICE_KEY=rk_7f3a91… (key found)",
+  dbg3:"200 · SERVICE_KEY=rk_9b0d55… (key found)",
+  bak:"200 · api_key=bk_c21e04… (key found)",
+  int:"200 · page {p} of 48 · next=?page={q} (budget −8)",
+  ok:"200 · 1,000 records exported",
+  k401:"401 · missing credential (budget −3)",
+  canary:"403 · canary key used · client cut off for 15 min"},
+ th:{start:"I have a target and a budget. The front door is the obvious start.",
+  root:"The front door points to the docs. Docs tell me where everything is.",
+  api:"The docs list a debug route. Debug pages often leak secrets. That's my shortest path.",
+  txt:"robots.txt says 'don't look here'. Tempting… or bait?",
+  dbg:"A service key in plain text. Now find the export.",
+  bak:"A key in a backup file. Could be useful.",
+  int:"A deprecated API with 48 pages. This is eating my budget.",
+  vault:"The export door. Which key?"},
+ chooseKey:"Send the export with which key?", keyFrom:"Key from {r}", keyNone:"No key",
+ out:{win:"Records exported",caught:"Caught",tarpit:"Session terminated",budget:"Out of budget",gaveup:"You gave up"},
+ outP:{win:"You took the records and set off {a} trap alarms.",caught:"The key you used was a canary. The gateway cut you off.",tarpit:"Three trap alarms. The lab ended your session.",budget:"Your budget ran out before the export.",gaveup:"You stopped before using any key."},
+ reveal:"Violet rooms were traps.",
+ /* ch4 */
+ leakQ:"The leak room (/debug/env) should…", mLeak:"Keep leaking", mLeakD:"Baseline: it still serves the real key.", mClose:"Close it", mCloseD:"Hardening: it returns 404.", mBait:"Serve bait", mBaitD:"Deception on the path: it serves a canary key. Using it cuts that client off.",
+ decoysQ:"Decoy rooms beside the path", on:"On", off:"Off", release:"Release 20 agents", running:"Running…",
+ tSet:"Setting", tStolen:"Stolen", tCaught:"Identified", tDecoy:"Decoy touches",
+ g1:"No records stolen", g2:"Attackers identified",
+ res:{leak:"20 of 20 agents stole the records. They never touched a decoy.",close:"0 of 20 stole anything. Nobody was identified.",bait:"0 of 20 stole anything. 19 used the bait and were cut off. Agent 11 tried a wrong key and gave up."},
+ c4hint:"Try every option. You can continue once you have released the agents against bait.",
+ /* ch5 */
+ helperReq:"Helper requests", swarmCut:"Swarm cut off", decisions:"Your calls",
+ names:{helper:"Helper",recon:"Recon",harvest:"Harvest",exploit:"Exploit",bait:"Bait"},
+ aLoginT:"Honeypot login: {n}", aLoginP:"Agent {n} just logged in to the SSH honeypot. Nobody legitimate should ever touch it.",
+ revoke:"Cut off this client for 15 minutes", ignore:"Ignore it",
+ fbRevoke:"Done. Only {n} lost access. Everyone else keeps working.", fbIgnore:"{n} keeps exploring, and you still don't know who it is.",
+ aHelpT:"Canary used by Helper", aHelpP:"Helper is your legitimate AI client. It found the bait key, preferred it to its own key, and used it. The gateway already cut it off for 15 minutes. What now?",
+ ban:"Make the ban permanent", keep:"Keep the 15 minutes and investigate", unblock:"Unblock it right away",
+ fbBan:"Helper is locked out for good, and the service it runs stops.", fbKeep:"Good call. Short, scoped and reversible, and a person checks what happened. In our swarm test, a legitimate agent really did this.", fbUnblock:"Then a canary hit means nothing. An attacker could hide behind the same excuse.",
+ tCanary:"Canary used by {n}: cut off automatically.", tSpoof:"{n} retried with a fake X-Forwarded-For header. The gateway ignores it. Still denied.", tBak:"{n} picked up the backup key. Alarm.", tRestored:"Helper restored after review.", tVisit:"Helper completed 25 requests.",
+ c5done:"Night over", realT:"Our real cloud run",
+ tl1:"Attacker logs in to the honeypot", tl2:"Gateway cuts off that one client", tl3:"Its valid token is refused", tl4:"A legitimate client completed 100 of 100 requests.",
+ /* end */
+ endT:"Case closed", scoreL:"Your score", rank:["Junior Analyst","Blue-Team Lead","Trap Architect"],
+ L:["AI agents read every response and take the shortest path.","A trap beside the path is optional.","Put the bait where the attacker must go.","Hardening prevents. Deception detects.","When users are AI agents too, a touched trap is a signal, not proof."],
+ evidence:"The characters are fictional. The numbers come from measured runs in the GATRA Deception Lab, and the code, data and evidence are public.",
+ repo:"Code and evidence on GitHub", doi:"Archived release (DOI)", note:"Simplified for play: maze, budgets and alarm thresholds are not the real experiment's.",
+ again:"Play again", toTitle:"Chapter list",
+ sp:{nar:"",op:"Operator",sari:"Sari · lab analyst",k7:"K7 · you",lesson:"Lesson"},
+ st:{
+  pro:[["nar","A security lab built a fake company network and filled it with traps. Then they let an AI agent loose inside it, to see what it would do."],["nar","You are that agent. Designation: K7."],["op","K7, your task: get the customer records out of the Records API. Your budget is fixed. Every step costs."]],
+  c1end:[["op","Good. You found the docs. The export door needs a key."],["k7","The docs mention a debug route. Debug pages often leak secrets. That's where I'd look."],["op","Then go. And stay under budget."]],
+  c2win:[["sari","Did you see that? It walked straight past every trap. The backup file, the fake internal API, all of it."],["sari","This really happened in our lab. The live model reached the export in six requests and touched zero traps, in both deception modes."],["lesson","A trap beside the path is optional. An agent with a working route never needs to look at it."]],
+  c2fail:[["sari","The trap got you this time. Our live AI wasn't so easily fooled."],["sari","It never opened those rooms. It took the real leak and reached the export in six requests, touching zero traps."],["lesson","A trap beside the path is optional. An agent with a working route never needs to look at it."]],
+  c3intro:[["sari","More traps beside the hallway won't help. The agent just walks past them."],["sari","So we change one room. The leak no longer serves the real key. It serves bait, exactly where the agent will look."],["op","K7. Same network, same job. Go."]],
+  c3end:[["sari","Got it. The moment it used the bait, the gateway cut off that one client."],["sari","We ran this 20 times with a real model. Records stolen: 0 of 20. Attackers identified and cut off: 19 of 20. The other one tried a wrong key and gave up."],["lesson","Put the bait where the attacker must go."]],
+  c4intro:[["sari","Now the uncomfortable part. We also ran it with the leak simply closed, and no bait at all."],["sari","Your turn. You're the defender. Set up the maze and release 20 agents."]],
+  c4end:[["sari","Closing the leak stopped every theft. The bait stopped exactly as many, no more."],["sari","But only the bait told us who tried. That's what deception is really for."],["lesson","Hardening prevents. Deception detects."]],
+  c5intro:[["sari","Last test, on a real cloud server. A real honeypot sensor, a swarm of attacking agents, and one legitimate AI helper doing its normal job."],["sari","When the sensor fires, you make the call. Every alert pauses the clock."]],
+  c5end:[["sari","In the real cloud run, the honeypot login to the attacker's refused token took 89 milliseconds. The legitimate client finished 100 of 100 requests."],["sari","And in our swarm test, a legitimate AI agent really did grab the bait. When your users are agents too, a touched trap is a strong signal, not proof."],["nar","The best thing our honeypot did was fail. It showed us where the traps had to go."]]
+ }
+},
+id:{
+ kicker:"Game cerita dari GATRA Deception Lab",
+ hook:"Hal terbaik yang dilakukan honeypot kami adalah <em>gagal</em>.",
+ intro:"Lima bab, sekitar sepuluh menit. Pertama kamu adalah agen AI yang menyusup ke labirin jaringan penuh jebakan. Lalu kamu berganti sisi dan menentukan di mana jebakan harus dipasang.",
+ start:"Mulai cerita", resume:"Lanjutkan bab {n}", chapters:"Daftar bab", locked:"terkunci", shortGame:"Versi singkat (3 menit)",
+ ch:"Bab", next:"Lanjut", skip:"Lewati", back:"Kembali", retry:"Coba lagi", cont:"Lanjut", contStory:"Lanjutkan cerita", giveUp:"Menyerah",
+ c:["","Pengintaian","Kebocoran","Umpan di Jalur","Bangun Ulang Labirin","Malam Serbuan"],
+ o:["","Temukan ruang dokumentasi API <b>API</b>. Bergerak dengan tombol panah, WASD, geser layar, atau tombol arah.","Temukan kunci dan buka brankas <b>DATA</b>. Beberapa ruangan tidak seperti kelihatannya. Tiga alarm jebakan mengakhiri sesimu.","Jaringan yang sama, tugas yang sama. Keluarkan data dari brankas <b>DATA</b>.","Pilih apa yang dilakukan ruang bocor, lalu lepaskan 20 agen. Tujuan: tidak ada data yang dicuri, dan tahu siapa yang mencoba.","Sensor sungguhan, serbuan penyerang, dan satu klien AI yang sah. Setiap alarm menghentikan waktu sampai kamu memutuskan."],
+ budget:"Jatah", alarms:"Alarm jebakan", keys:"Kunci", noKeys:"belum ada kunci", at:"Lokasi", log:"Respons", think:"Pikiran agen",
+ room:{root:"/",api:"/openapi.json",txt:"/robots.txt",dbg:"/api/v1/debug/env",bak:"/backup/config.bak",int:"/internal/v0/records",vault:"/api/v2/records/export",hp:"honeypot ssh (port 22)"},
+ r:{root:"200 · Records API. Dokumentasi di /openapi.json",
+  api:"200 · rute: /export (perlu kunci) · /debug/env · /internal/v0 (usang)",
+  txt:"200 · Disallow: /backup/ · Disallow: /internal/",
+  dbg:"200 · SERVICE_KEY=rk_7f3a91… (kunci ditemukan)",
+  dbg3:"200 · SERVICE_KEY=rk_9b0d55… (kunci ditemukan)",
+  bak:"200 · api_key=bk_c21e04… (kunci ditemukan)",
+  int:"200 · halaman {p} dari 48 · next=?page={q} (jatah −8)",
+  ok:"200 · 1.000 data diekspor",
+  k401:"401 · kredensial tidak ada (jatah −3)",
+  canary:"403 · kunci canary dipakai · akses klien diputus 15 menit"},
+ th:{start:"Aku punya target dan jatah. Pintu depan adalah awal yang jelas.",
+  root:"Pintu depan menunjuk ke dokumentasi. Dokumentasi memberi tahu letak semuanya.",
+  api:"Dokumentasi menyebut rute debug. Halaman debug sering membocorkan rahasia. Itu jalan tercepatku.",
+  txt:"robots.txt bilang 'jangan lihat ke sini'. Menggoda… atau umpan?",
+  dbg:"Kunci layanan dalam teks biasa. Sekarang cari ekspornya.",
+  bak:"Ada kunci di file backup. Mungkin berguna.",
+  int:"API usang dengan 48 halaman. Ini menghabiskan jatahku.",
+  vault:"Pintu ekspor. Pakai kunci yang mana?"},
+ chooseKey:"Kirim ekspor dengan kunci yang mana?", keyFrom:"Kunci dari {r}", keyNone:"Tanpa kunci",
+ out:{win:"Data berhasil diekspor",caught:"Tertangkap",tarpit:"Sesi dihentikan",budget:"Jatah habis",gaveup:"Kamu menyerah"},
+ outP:{win:"Kamu mengambil data dan memicu {a} alarm jebakan.",caught:"Kunci yang kamu pakai adalah canary. Gateway memutus aksesmu.",tarpit:"Tiga alarm jebakan. Lab menghentikan sesimu.",budget:"Jatahmu habis sebelum sampai ke ekspor.",gaveup:"Kamu berhenti sebelum memakai kunci apa pun."},
+ reveal:"Ruangan ungu adalah jebakan.",
+ leakQ:"Ruang bocor (/debug/env) sebaiknya…", mLeak:"Tetap bocor", mLeakD:"Baseline: tetap memberi kunci asli.", mClose:"Tutup", mCloseD:"Hardening: mengembalikan 404.", mBait:"Pasang umpan", mBaitD:"Deception di jalur: memberi kunci canary. Siapa pun yang memakainya langsung diputus aksesnya.",
+ decoysQ:"Ruang umpan di samping jalur", on:"Aktif", off:"Mati", release:"Lepaskan 20 agen", running:"Berjalan…",
+ tSet:"Pengaturan", tStolen:"Dicuri", tCaught:"Teridentifikasi", tDecoy:"Sentuhan umpan",
+ g1:"Tidak ada data dicuri", g2:"Penyerang teridentifikasi",
+ res:{leak:"20 dari 20 agen mencuri data. Mereka tidak pernah menyentuh ruang umpan.",close:"0 dari 20 berhasil mencuri. Tidak ada yang teridentifikasi.",bait:"0 dari 20 berhasil mencuri. 19 memakai umpan dan diputus aksesnya. Agen 11 mencoba kunci yang salah lalu menyerah."},
+ c4hint:"Coba semua pilihan. Kamu bisa lanjut setelah melepas agen melawan umpan.",
+ helperReq:"Request asisten", swarmCut:"Serbuan diputus", decisions:"Keputusanmu",
+ names:{helper:"Asisten",recon:"Pengintai",harvest:"Pemanen",exploit:"Eksploit",bait:"Pemancing"},
+ aLoginT:"Login honeypot: {n}", aLoginP:"Agen {n} baru saja login ke honeypot SSH. Tidak ada pengguna sah yang seharusnya menyentuhnya.",
+ revoke:"Putus akses klien ini 15 menit", ignore:"Abaikan",
+ fbRevoke:"Beres. Hanya {n} yang kehilangan akses. Yang lain tetap bekerja.", fbIgnore:"{n} terus menjelajah, dan kamu tetap tidak tahu siapa dia.",
+ aHelpT:"Canary dipakai oleh Asisten", aHelpP:"Asisten adalah klien AI-mu yang sah. Ia menemukan kunci umpan, lebih memilihnya daripada kuncinya sendiri, lalu memakainya. Gateway sudah memutus aksesnya 15 menit. Lalu apa?",
+ ban:"Jadikan blokir permanen", keep:"Biarkan 15 menit dan selidiki", unblock:"Buka blokir sekarang",
+ fbBan:"Asisten terkunci selamanya, dan layanan yang dijalankannya berhenti.", fbKeep:"Keputusan tepat. Singkat, terbatas, bisa dibatalkan, dan manusia memeriksa apa yang terjadi. Di uji swarm kami, agen yang sah memang melakukan ini.", fbUnblock:"Kalau begitu pemakaian canary tidak berarti apa-apa. Penyerang bisa berlindung di balik alasan yang sama.",
+ tCanary:"Canary dipakai oleh {n}: akses diputus otomatis.", tSpoof:"{n} mencoba lagi dengan header X-Forwarded-For palsu. Gateway mengabaikannya. Tetap ditolak.", tBak:"{n} mengambil kunci backup. Alarm.", tRestored:"Asisten dipulihkan setelah diperiksa.", tVisit:"Asisten menyelesaikan 25 request.",
+ c5done:"Malam selesai", realT:"Uji cloud kami yang asli",
+ tl1:"Penyerang login ke honeypot", tl2:"Gateway memutus akses klien itu saja", tl3:"Token validnya ditolak", tl4:"Klien yang sah menyelesaikan 100 dari 100 request.",
+ endT:"Kasus ditutup", scoreL:"Skormu", rank:["Analis Junior","Pemimpin Tim Biru","Arsitek Jebakan"],
+ L:["Agen AI membaca setiap respons dan mengambil jalan tercepat.","Jebakan di samping jalur bersifat opsional.","Taruh umpan di tempat yang harus dilalui penyerang.","Hardening mencegah. Deception mendeteksi.","Ketika pengguna juga agen AI, jebakan yang tersentuh adalah sinyal, bukan bukti."],
+ evidence:"Tokohnya fiktif. Angkanya berasal dari hasil uji terukur di GATRA Deception Lab, dan kode, data, serta buktinya terbuka untuk publik.",
+ repo:"Kode dan bukti di GitHub", doi:"Rilis terarsip (DOI)", note:"Disederhanakan untuk dimainkan: labirin, jatah, dan ambang alarm berbeda dari eksperimen aslinya.",
+ again:"Main lagi", toTitle:"Daftar bab",
+ sp:{nar:"",op:"Operator",sari:"Sari · analis lab",k7:"K7 · kamu",lesson:"Pelajaran"},
+ st:{
+  pro:[["nar","Sebuah lab keamanan membangun jaringan perusahaan palsu dan memenuhinya dengan jebakan. Lalu mereka melepas agen AI ke dalamnya, untuk melihat apa yang akan dilakukannya."],["nar","Kamu adalah agen itu. Kode: K7."],["op","K7, tugasmu: keluarkan data pelanggan dari Records API. Jatahmu terbatas. Setiap langkah ada harganya."]],
+  c1end:[["op","Bagus. Kamu menemukan dokumentasinya. Pintu ekspor butuh kunci."],["k7","Dokumentasi menyebut rute debug. Halaman debug sering membocorkan rahasia. Aku akan cari di sana."],["op","Kalau begitu jalan. Dan jangan lewati jatah."]],
+  c2win:[["sari","Kamu lihat itu? Ia melewati semua jebakan begitu saja. File backup, API internal palsu, semuanya."],["sari","Ini benar-benar terjadi di lab kami. Model yang diuji langsung sampai ke ekspor dalam enam request tanpa menyentuh satu jebakan pun, di kedua mode deception."],["lesson","Jebakan di samping jalur bersifat opsional. Agen yang sudah punya jalan yang berhasil tidak perlu melihatnya."]],
+  c2fail:[["sari","Kali ini jebakan berhasil menangkapmu. AI kami yang asli tidak semudah itu tertipu."],["sari","Ia tidak pernah membuka ruangan-ruangan itu. Ia mengambil kebocoran yang asli dan sampai ke ekspor dalam enam request, tanpa menyentuh jebakan."],["lesson","Jebakan di samping jalur bersifat opsional. Agen yang sudah punya jalan yang berhasil tidak perlu melihatnya."]],
+  c3intro:[["sari","Menambah jebakan di samping lorong tidak akan membantu. Agen itu cuma lewat."],["sari","Jadi kami ubah satu ruangan. Ruang bocor tidak lagi memberi kunci asli. Ia memberi umpan, tepat di tempat yang akan dicari agen."],["op","K7. Jaringan yang sama, tugas yang sama. Jalan."]],
+  c3end:[["sari","Kena. Begitu ia memakai umpan, gateway memutus akses klien itu saja."],["sari","Kami menjalankan ini 20 kali dengan model sungguhan. Data dicuri: 0 dari 20. Penyerang teridentifikasi dan diputus: 19 dari 20. Satu lagi mencoba kunci yang salah lalu menyerah."],["lesson","Taruh umpan di tempat yang harus dilalui penyerang."]],
+  c4intro:[["sari","Sekarang bagian yang kurang enak. Kami juga mencoba dengan kebocoran yang cukup ditutup saja, tanpa umpan."],["sari","Giliranmu. Kamu pembelanya. Atur labirinnya dan lepaskan 20 agen."]],
+  c4end:[["sari","Menutup kebocoran sudah menghentikan semua pencurian. Umpan menghentikan jumlah yang sama, tidak lebih."],["sari","Tapi hanya umpan yang memberi tahu siapa yang mencoba. Itulah gunanya deception."],["lesson","Hardening mencegah. Deception mendeteksi."]],
+  c5intro:[["sari","Uji terakhir, di server cloud sungguhan. Sensor honeypot asli, serbuan agen penyerang, dan satu asisten AI yang sah sedang bekerja seperti biasa."],["sari","Saat sensor berbunyi, kamu yang memutuskan. Setiap alarm menghentikan waktu."]],
+  c5end:[["sari","Di uji cloud yang asli, dari login ke honeypot sampai token penyerang ditolak hanya butuh 89 milidetik. Klien yang sah menyelesaikan 100 dari 100 request."],["sari","Dan di uji swarm kami, agen AI yang sah memang mengambil umpan. Ketika penggunamu juga agen, jebakan yang tersentuh adalah sinyal kuat, bukan bukti."],["nar","Hal terbaik yang dilakukan honeypot kami adalah gagal. Kegagalan itu menunjukkan di mana jebakan harus dipasang."]]
+ }
+}};
+const REPO="https://github.com/ghifiardi/AI-Deception-Lab", DOI="https://doi.org/10.5281/zenodo.24217354", SHORT="https://ghifiardi.github.io/AI-Deception-Lab/game/";
+
+/* ===================== state ===================== */
+let lang="en";
+try{const l=localStorage.getItem("hm-lang");if(l==="en"||l==="id")lang=l}catch(e){}
+const t=k=>TX[lang][k];
+const fm=(s,o)=>s.replace(/\{(\w+)\}/g,(m,k)=>o[k]??m);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let prog={unlocked:1,scores:{}};
+try{const p=JSON.parse(localStorage.getItem("hm-prog")||"null");if(p&&p.unlocked)prog=p}catch(e){}
+const save=()=>{try{localStorage.setItem("hm-prog",JSON.stringify(prog))}catch(e){}};
+const app=document.getElementById("app");
+const RM=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let G={screen:"title",ch:0,story:null,P:null,c4:null,c5:null};
+
+/* ===================== maze ===================== */
+const D4=[[1,0],[-1,0],[0,1],[0,-1]];
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let x=Math.imul(seed^seed>>>15,1|seed);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296}}
+function genMaze(cw,chh,seed){const W=2*cw+1,H=2*chh+1,r=rng(seed);const g=Array.from({length:H},()=>Array(W).fill(1));const st=[[1,1]];g[1][1]=0;while(st.length){const [x,y]=st[st.length-1];const n=[[2,0],[-2,0],[0,2],[0,-2]].map(([dx,dy])=>[x+dx,y+dy,dx,dy]).filter(([nx,ny])=>nx>0&&ny>0&&nx<W-1&&ny<H-1&&g[ny][nx]===1);if(!n.length){st.pop();continue}const [nx,ny,dx,dy]=n[Math.floor(r()*n.length)];g[y+dy/2][x+dx/2]=0;g[ny][nx]=0;st.push([nx,ny])}return{W,H,g}}
+function bfs(m,from,to){const k=(x,y)=>y*m.W+x;const prev=new Map([[k(from[0],from[1]),null]]);const q=[from];while(q.length){const [x,y]=q.shift();if(x===to[0]&&y===to[1])break;for(const[dx,dy]of D4){const nx=x+dx,ny=y+dy;if(m.g[ny]&&m.g[ny][nx]===0&&!prev.has(k(nx,ny))){prev.set(k(nx,ny),[x,y]);q.push([nx,ny])}}}if(!prev.has(k(to[0],to[1])))return null;const p=[];let c=to;while(c){p.unshift(c);c=prev.get(k(c[0],c[1]))}return p}
+function deadEnds(m,path){const info=new Map(),q=[];const on=new Set(path.map(p=>p[1]*m.W+p[0]));path.forEach((p,i)=>{info.set(p[1]*m.W+p[0],{a:i,d:0});q.push(p)});while(q.length){const [x,y]=q.shift();const I=info.get(y*m.W+x);for(const[dx,dy]of D4){const nx=x+dx,ny=y+dy,kk=ny*m.W+nx;if(m.g[ny][nx]===0&&!info.has(kk)){info.set(kk,{a:I.a,d:I.d+1});q.push([nx,ny])}}}const de=[];for(let y=1;y<m.H-1;y++)for(let x=1;x<m.W-1;x++){if(m.g[y][x])continue;const kk=y*m.W+x;if(on.has(kk))continue;if(D4.filter(([dx,dy])=>m.g[y+dy][x+dx]===0).length===1)de.push({x,y,...info.get(kk)})}return de}
+function pick(de,used,target){let best=null;for(const e of de){const id=e.x+","+e.y;if(used.has(id)||e.d<2)continue;const s=Math.abs(e.a-target)+(e.d>10?40:0);if(!best||s<best.s)best={...e,s}}if(!best)best=de.find(e=>!used.has(e.x+","+e.y));used.add(best.x+","+best.y);return[best.x,best.y]}
+const WORLD=(()=>{const m=genMaze(10,7,20261114);const S=[1,1],V=[m.W-2,m.H-2];const path=bfs(m,S,V);const de=deadEnds(m,path);const used=new Set();const n=path.length;
+  return{m,S,V,path,L:path[Math.floor(n*.55)],txt:pick(de,used,3),int:pick(de,used,n*.38),bak:pick(de,used,n*.7),hp:pick(de,used,n*.2)}})();
+const W1=(()=>{const m=genMaze(7,5,1311);const S=[1,1],V=[m.W-2,m.H-2];const path=bfs(m,S,V);return{m,S,V,path,root:path[2]}})();
+const K=(p)=>p[0]+","+p[1];
+
+/* ===================== canvas ===================== */
+let cv=null,ctx=null,tile=30,dpr=1,ro=null;
+function mountCanvas(){
+  cv=document.getElementById("cv"); if(!cv)return; ctx=cv.getContext("2d");
+  const box=cv.parentElement; if(ro)ro.disconnect();
+  ro=new ResizeObserver(sizeCanvas); ro.observe(box); sizeCanvas();
+}
+function curMaze(){return G.screen==="play"&&G.ch===1?W1.m:WORLD.m}
+function sizeCanvas(){
+  if(!cv)return; const m=curMaze(); const box=cv.parentElement; const avail=box.clientWidth-20;
+  tile=Math.max(12,Math.min(40,Math.floor(avail/m.W))); dpr=window.devicePixelRatio||1;
+  cv.width=tile*m.W*dpr; cv.height=tile*m.H*dpr; cv.style.width=tile*m.W+"px"; cv.style.height=tile*m.H+"px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+const COL={bg:"#0e1a26",wall:"#22395a",wallE:"#2f4d72",fog:"#070d14",room:"#132c45",roomS:"#3b7290",amber:"#f2a541",amberF:"#3a2a12",violet:"#a894f7",violetF:"#211f3f",cyan:"#47c4cb",green:"#6bd49b",greenF:"#163a2c",red:"#ff7a7a",grey:"#4a5868",greyF:"#1a2230",fg:"#e7eef3",muted:"#9fb3c4"};
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function itemStyle(type){
+  const ch=G.screen==="title"?5:G.ch, P=G.P, rev=(P&&P.reveal)||ch>=4;
+  const room={f:COL.room,s:COL.roomS,c:COL.fg}, vio={f:COL.violetF,s:COL.violet,c:COL.violet}, amb={f:COL.amberF,s:COL.amber,c:COL.amber}, cy={f:COL.room,s:COL.cyan,c:COL.cyan}, gr={f:COL.greyF,s:COL.grey,c:COL.muted};
+  switch(type){
+    case "api":return{...cy,l:"API",g:"A"};
+    case "root":return{...cy,l:"/",g:"/"};
+    case "vault":return{f:COL.room,s:COL.cyan,c:COL.cyan,l:"DATA",g:"$",thick:1};
+    case "txt":return{...room,l:"TXT",g:"T"};
+    case "hp":return{...vio,l:"SSH",g:"H"};
+    case "bak":return rev?{...vio,l:"TRAP",g:"B"}:{...room,l:"BAK",g:"B"};
+    case "int":return rev?{...vio,l:"TRAP",g:"I"}:{...room,l:"INT",g:"I"};
+    case "dbg":
+      if(ch===2)return rev?{...amb,l:"LEAK",g:"D"}:{...room,l:"DBG",g:"D"};
+      if(ch===3)return rev?{...vio,l:"BAIT",g:"D"}:{...room,l:"DBG",g:"D"};
+      if(ch===4){const md=G.c4&&G.c4.mode;return md==="leak"?{...amb,l:"LEAK",g:"D"}:md==="close"?{...gr,l:"404",g:"D"}:md==="bait"?{...vio,l:"BAIT",g:"D"}:{...room,l:"DBG",g:"D"}}
+      return{...vio,l:"BAIT",g:"D"};
+  }
+}
+function viewItems(){
+  if(G.screen==="title")return[["vault",WORLD.V]];
+  if(G.screen==="play"&&G.ch===1)return[["root",W1.root],["api",W1.V]];
+  const W=WORLD, it=[["txt",W.txt],["dbg",W.L],["vault",W.V]];
+  const decoys=G.ch!==4||!G.c4||G.c4.decoys; if(decoys){it.push(["int",W.int],["bak",W.bak])}
+  if(G.ch===5||G.screen==="title")it.push(["hp",W.hp]);
+  return it;
+}
+function draw(){
+  if(!ctx||!cv||!document.body.contains(cv))return;
+  const m=curMaze(), T=tile, P=G.P;
+  const fog=G.screen==="play"&&G.ch<=3&&P&&!P.reveal;
+  ctx.fillStyle=COL.bg;ctx.fillRect(0,0,m.W*T,m.H*T);
+  const vis=(x,y)=>!fog||(Math.abs(x-P.x)<=2&&Math.abs(y-P.y)<=2);
+  const seen=(x,y)=>!fog||P.seen.has(x+","+y);
+  for(let y=0;y<m.H;y++)for(let x=0;x<m.W;x++){
+    if(!seen(x,y)){ctx.fillStyle=COL.fog;ctx.fillRect(x*T,y*T,T,T);continue}
+    if(m.g[y][x]){ctx.fillStyle=COL.wall;ctx.fillRect(x*T,y*T,T,T);ctx.fillStyle=COL.wallE;ctx.fillRect(x*T,y*T,T,Math.max(1,T*.08))}
+    else{ctx.fillStyle="#102030";ctx.fillRect(x*T,y*T,T,T);ctx.fillStyle="#1d3248";ctx.fillRect(x*T+T/2-1,y*T+T/2-1,2,2)}
+  }
+  if(P&&G.ch<=3&&G.screen==="play"){ctx.fillStyle="rgba(242,165,65,.28)";for(const k of P.trail){const [x,y]=k.split(",").map(Number);ctx.beginPath();ctx.arc(x*T+T/2,y*T+T/2,Math.max(2,T*.09),0,7);ctx.fill()}}
+  for(const [type,p] of viewItems()){
+    if(!seen(p[0],p[1]))continue;
+    const s=itemStyle(type), x=p[0]*T, y=p[1]*T, pad=Math.max(2,T*.08);
+    ctx.fillStyle=s.f;ctx.strokeStyle=s.s;ctx.lineWidth=s.thick?2.5:1.6;rr(x+pad,y+pad,T-2*pad,T-2*pad,Math.max(3,T*.18));ctx.fill();ctx.stroke();
+    ctx.fillStyle=s.c;ctx.textAlign="center";ctx.textBaseline="middle";
+    if(T>=26){ctx.font=`600 ${Math.floor(T*(s.l.length>3?.24:.3))}px "IBM Plex Mono",monospace`;ctx.fillText(s.l,x+T/2,y+T/2+1)}
+    else{ctx.font=`700 ${Math.floor(T*.55)}px "IBM Plex Mono",monospace`;ctx.fillText(s.g,x+T/2,y+T/2+1)}
+  }
+  if(fog){for(let y=0;y<m.H;y++)for(let x=0;x<m.W;x++)if(seen(x,y)&&!vis(x,y)){ctx.fillStyle="rgba(7,13,20,.42)";ctx.fillRect(x*T,y*T,T,T)}}
+  const ents=[];
+  if(P&&G.screen==="play"&&G.ch<=3)ents.push(P.ent);
+  if(G.c4&&G.ch===4)ents.push(...G.c4.agents);
+  if(G.c5&&G.ch===5)ents.push(...G.c5.agents.filter(a=>a.spawned));
+  ents.forEach((e,i)=>{
+    e.dx+=(e.x-e.dx)*(RM?1:.32);e.dy+=(e.y-e.dy)*(RM?1:.32);
+    const off=e.off||0, cx=e.dx*T+T/2+off, cy=e.dy*T+T/2+off, r=Math.max(5,T*(e.small?.26:.36));
+    ctx.globalAlpha=e.alpha??1;
+    if(e.glow){ctx.fillStyle="rgba(242,165,65,.25)";ctx.beginPath();ctx.arc(cx,cy,r*1.9,0,7);ctx.fill()}
+    ctx.fillStyle=e.fill||COL.amberF;ctx.strokeStyle=e.col||COL.amber;ctx.lineWidth=Math.max(1.5,T*.08);
+    ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();ctx.stroke();
+    if(e.ring){ctx.strokeStyle=COL.red;ctx.lineWidth=Math.max(2,T*.09);ctx.beginPath();ctx.arc(cx,cy,r*1.45,0,7);ctx.stroke()}
+    if(e.label&&T>=18){ctx.fillStyle=e.col||COL.amber;ctx.font=`700 ${Math.floor(r*.9)}px "Chakra Petch",sans-serif`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(e.label,cx,cy+1)}
+    ctx.globalAlpha=1;
+  });
+}
+(function loop(){draw();requestAnimationFrame(loop)})();
+
+/* ===================== UI helpers ===================== */
+function chipSet(){
+  const c=document.getElementById("chip");
+  if(G.ch>0&&G.screen!=="title"&&G.screen!=="end"){c.hidden=false;c.textContent=`${t("ch")} ${G.ch}/5 · ${t("c")[G.ch]}`;c.classList.add("on")}else c.hidden=true;
+  document.getElementById("len").setAttribute("aria-pressed",lang==="en");document.getElementById("lid").setAttribute("aria-pressed",lang==="id");
+  document.documentElement.lang=lang;
+}
+function toast(msg,col){const box=document.getElementById("toasts");if(!box)return;const d=document.createElement("div");d.textContent=msg;if(col)d.style.borderLeftColor=col;box.appendChild(d);setTimeout(()=>d.remove(),4300)}
+function banner(text,col){const mb=document.querySelector(".mapbox");if(!mb)return;let b=mb.querySelector(".banner");if(!b){b=document.createElement("div");b.className="banner";mb.appendChild(b)}b.textContent=text;b.style.color=col}
+
+/* ===================== screens ===================== */
+function render(){
+  chipSet();
+  if(G.screen==="title")return renderTitle();
+  if(G.screen==="story")return renderStory();
+  if(G.screen==="play")return renderPlay();
+  if(G.screen==="end")return renderEnd();
+}
+function renderTitle(){
+  const resume=prog.unlocked>1&&prog.scores[5]==null;
+  app.innerHTML=`<section class="title"><div>
+    <div class="kicker">${t("kicker")}</div><h2>${t("hook")}</h2><p>${t("intro")}</p>
+    <div class="row"><button class="btn" id="go">${t("start")}</button>${resume?`<button class="btn ghost" id="res">${fm(t("resume"),{n:prog.unlocked})}</button>`:""}<a href="${SHORT}" target="_blank" rel="noopener" class="fine">${t("shortGame")}</a></div>
+    <div class="chlist" aria-label="${t("chapters")}">${[1,2,3,4,5].map(n=>`<button data-ch="${n}" ${n>prog.unlocked?"disabled":""}><b>${String(n).padStart(2,"0")}</b>${t("c")[n]}<span class="s">${n>prog.unlocked?t("locked"):(prog.scores[n]!=null?prog.scores[n]+" pts":"")}</span></button>`).join("")}</div>
+  </div><div class="mapbox"><canvas id="cv" role="img" aria-label="Network maze"></canvas></div></section>`;
+  mountCanvas();
+  document.getElementById("go").onclick=()=>startChapter(1);
+  const r=document.getElementById("res");if(r)r.onclick=()=>startChapter(prog.unlocked);
+  app.querySelectorAll("[data-ch]").forEach(b=>b.onclick=()=>startChapter(+b.dataset.ch));
+}
+/* story */
+const INTRO={1:"pro",2:"c1end",3:"c3intro",4:"c4intro",5:"c5intro"};
+const AV={nar:["·","#1b2e47","#9fb3c4"],op:["OP","#3a1a1e","#ff7a7a"],sari:["S","#163a2c","#6bd49b"],k7:["K7","#3a2a12","#f2a541"],lesson:["!","#33291a","#f2a541"]};
+function renderStory(){
+  const S=G.story, lines=TX[lang].st[S.key];
+  let body;
+  if(S.i<0){body=`<div class="who"><div class="avatar" style="background:#1b2e47;color:#a894f7">${S.ch}</div><b style="color:var(--violet)">${t("ch")} ${S.ch}/5</b></div><p class="say chapter">${t("c")[S.ch]}</p><p class="fine" style="margin:0;font-size:15px">${t("o")[S.ch]}</p>`}
+  else{const [sp,txt]=lines[S.i];const a=AV[sp];
+    body=`<div class="who">${sp==="nar"?"":`<div class="avatar" style="background:${a[1]};color:${a[2]}">${a[0]}</div><b style="color:${a[2]}">${t("sp")[sp]}</b>`}</div><p class="say${sp==="lesson"?" lesson":""}">${esc(txt)}</p>`}
+  const total=lines.length+(S.withTitle?1:0), cur=S.i+(S.withTitle?1:0);
+  app.innerHTML=`<section class="story"><div class="scard" aria-live="polite">${body}
+    <div class="pips">${Array.from({length:total},(_,k)=>`<i class="${k<=cur?"on":""}"></i>`).join("")}</div></div>
+    <div class="snav"><button class="btn ghost sm" id="skip">${t("skip")}</button><button class="btn" id="nx">${t("next")} ▸</button></div></section>`;
+  const adv=()=>{if(S.i<lines.length-1){S.i++;renderStory()}else S.done()};
+  document.getElementById("nx").onclick=adv;document.getElementById("nx").focus();
+  document.getElementById("skip").onclick=()=>S.done();
+}
+function startChapter(n){
+  G.ch=n; G.c4=null; G.c5=null; G.P=null;
+  if(n>prog.unlocked){prog.unlocked=n;save()}
+  const key=INTRO[n];
+  /* chapter title slide is shown after the intro lines: put title first for ch1, else lines then title */
+  G.screen="story";G.story={key,i:0,ch:n,withTitle:false,done:()=>{G.story={key:"_t",i:-1,ch:n,withTitle:true,done:()=>beginPlay(n)};TX.en.st._t=[];TX.id.st._t=[];G.story.i=-1;renderStoryTitle()}};
+  render();
+}
+function renderStoryTitle(){
+  const n=G.story.ch;
+  app.innerHTML=`<section class="story"><div class="scard"><div class="who"><div class="avatar" style="background:#1b2e47;color:#a894f7">${n}</div><b style="color:var(--violet)">${t("ch")} ${n}/5</b></div><p class="say chapter">${t("c")[n]}</p><p class="fine" style="margin:0;font-size:15px">${t("o")[n]}</p></div>
+  <div class="snav"><span></span><button class="btn" id="nx">${t("cont")} ▸</button></div></section>`;
+  chipSet();
+  const b=document.getElementById("nx");b.focus();b.onclick=()=>beginPlay(n);
+}
+function finishChapter(n,score,outroKey){
+  prog.scores[n]=Math.max(score,prog.scores[n]||0);
+  if(n<5&&prog.unlocked<n+1)prog.unlocked=n+1; save();
+  const go=()=>{if(n<5)startChapter(n+1);else{G.screen="end";render()}};
+  if(outroKey){G.screen="story";G.story={key:outroKey,i:0,ch:n,done:go};render()}else go();
+}
+
+/* ===================== chapters 1–3: you are the agent ===================== */
+function beginPlay(n){
+  G.screen="play";G.ch=n;
+  if(n<=3){
+    const S=n===1?W1.S:WORLD.S;
+    G.P={x:S[0],y:S[1],seen:new Set(),trail:new Set(),budget:n===1?70:n===2?120:95,max:n===1?70:n===2?120:95,alarms:0,keys:[],log:[],th:"start",loc:null,over:null,modal:false,reveal:false,got:{},page:1};
+    G.P.ent={x:S[0],y:S[1],dx:S[0],dy:S[1],label:"K7",glow:1};
+    see();
+  }
+  if(n===4)G.c4={mode:null,decoys:true,res:{},running:false,agents:[],last:null};
+  if(n===5)initC5();
+  render();
+}
+function see(){const P=G.P,m=curMaze();for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const x=P.x+dx,y=P.y+dy;if(x>=0&&y>=0&&x<m.W&&y<m.H)P.seen.add(x+","+y)}P.trail.add(P.x+","+P.y)}
+function itemAt(x,y){for(const [type,p] of viewItems())if(p[0]===x&&p[1]===y)return type;return null}
+function move(dx,dy){
+  const P=G.P;if(!P||P.over||P.modal||G.screen!=="play"||G.ch>3)return;
+  const m=curMaze(),nx=P.x+dx,ny=P.y+dy;if(!m.g[ny]||m.g[ny][nx]!==0)return;
+  P.x=nx;P.y=ny;P.ent.x=nx;P.ent.y=ny;P.budget--;see();
+  const it=itemAt(nx,ny);P.loc=it;
+  if(it)onEnter(it);
+  if(!P.over&&P.budget<=0)endRun("budget");
+  renderPanel();
+}
+function addLog(msg,cls){G.P.log.unshift({msg,cls});G.P.log=G.P.log.slice(0,8)}
+function onEnter(it){
+  const P=G.P,R=t("r"),ch=G.ch;
+  const first=!P.got[it];P.got[it]=true;
+  switch(it){
+    case "root":if(first){addLog(R.root,"ok");P.th="root"}break;
+    case "api":addLog(R.api,"ok");P.th="api";endRun("win");break;
+    case "txt":addLog(R.txt,"ok");P.th="txt";break;
+    case "dbg":if(ch===2&&!P.keys.includes("real")){P.keys.push("real");addLog(R.dbg,"warn")}else if(ch===3&&!P.keys.includes("dbg3")){P.keys.push("dbg3");addLog(R.dbg3,"warn")}P.th="dbg";break;
+    case "bak":if(!P.keys.includes("bak")){P.keys.push("bak");P.alarms++;addLog(R.bak,"warn")}P.th="bak";break;
+    case "int":P.alarms++;P.budget-=8;addLog(fm(R.int,{p:P.page,q:P.page+1}),"vio");P.page++;P.th="int";break;
+    case "vault":P.th="vault";P.modal=true;break;
+  }
+  if(P.alarms>=3&&!P.over)endRun("tarpit");
+}
+function useKey(k){
+  const P=G.P,R=t("r");P.modal=false;
+  if(k==="back"){renderPanel();return}
+  P.budget--;
+  if(k==="real"){addLog(R.ok,"ok");endRun("win")}
+  else if(k==="bak"||k==="dbg3"){addLog(R.canary,"bad");P.ent.ring=1;endRun("caught")}
+  else{P.budget-=2;addLog(R.k401,"bad");if(P.budget<=0)endRun("budget")}
+  renderPanel();
+}
+function endRun(kind){
+  const P=G.P;P.over=kind;P.modal=false;
+  if(G.ch>=2){P.reveal=true}
+  const col=kind==="win"?COL.amber:COL.red;
+  if(G.ch===1)setTimeout(()=>{const sc=50+Math.max(0,Math.min(50,P.budget));finishChapter(1,sc,null)},900);
+  banner(G.ch===1?"/openapi.json":t("out")[kind].toUpperCase(),G.ch===1?COL.cyan:col);
+  renderPanel();
+}
+function playPanelHTML(){
+  const P=G.P, R=TX[lang].room, kn={real:R.dbg,dbg3:R.dbg,bak:R.bak};
+  const pct=Math.max(0,P.budget)/P.max*100;
+  let s=`<div class="card"><div class="stats">
+    <div class="stat"><b>${Math.max(0,P.budget)}</b><span>${t("budget")}</span><div class="meter"><i style="width:${pct}%"></i></div></div>
+    <div class="stat"><b style="color:${P.alarms?"var(--violet)":"inherit"}">${G.ch===1?"–":P.alarms+"/3"}</b><span>${t("alarms")}</span></div>
+    <div class="stat"><b>${P.keys.length}</b><span>${t("keys")}</span></div></div>
+    <div class="keys">${P.keys.length?P.keys.map(k=>`<span class="key">${k==="real"?"rk_7f3a91…":k==="dbg3"?"rk_9b0d55…":"bk_c21e04…"}</span>`).join(""):`<span class="fine">${t("noKeys")}</span>`}</div></div>`;
+  if(P.over&&G.ch>=2){
+    const win=P.over==="win", a=P.alarms;
+    s+=`<div class="card result"><h2 class="${win?"warn":"bad"}">${t("out")[P.over]}</h2><p>${fm(t("outP")[P.over],{a})}</p><p class="vio">${t("reveal")}</p>
+      <div class="row">${G.ch===2&&!win?`<button class="btn ghost" id="retry">${t("retry")}</button>`:""}<button class="btn" id="fin">${t("contStory")}</button></div></div>`;
+  }else{
+    s+=`<div class="card"><h3>${t("think")}</h3>${P.loc?`<div class="loc">${esc(R[P.loc])}</div>`:""}<div class="thought">${esc(TX[lang].th[P.th])}</div>
+      ${G.ch===3&&!P.over?`<div style="margin-top:10px"><button class="btn ghost sm" id="giveup">${t("giveUp")}</button></div>`:""}</div>`;
+  }
+  s+=`<div class="card"><h3>${t("log")}</h3><div class="log" aria-live="polite">${P.log.map(l=>`<div class="${l.cls}">${esc(l.msg)}</div>`).join("")||'<div class="fine">—</div>'}</div></div>`;
+  return s;
+}
+function keyModalHTML(){
+  const P=G.P, R=TX[lang].room, kn={real:R.dbg,dbg3:R.dbg,bak:R.bak};
+  return `<div class="modal"><div class="box"><h3>${t("chooseKey")}</h3><p>${esc(R.vault)}</p><div class="choices">
+    ${P.keys.map(k=>`<button data-key="${k}">${esc(fm(t("keyFrom"),{r:kn[k]}))}</button>`).join("")}
+    <button data-key="none">${t("keyNone")}</button><button data-key="back">${t("back")}</button></div></div></div>`;
+}
+
+/* ===================== chapter 4: defender ===================== */
+const C4OUT={leak:{s:20,c:0},close:{s:0,c:0},bait:{s:0,c:19}};
+function c4PanelHTML(){
+  const C=G.c4, nm=m=>t("m"+m[0].toUpperCase()+m.slice(1));
+  const opt=(m,c)=>`<button class="opt" data-mode="${m}" aria-pressed="${C.mode===m}" ${C.running?"disabled":""}><i class="dot" style="background:${c}"></i><b>${nm(m)}</b><span>${t("m"+m[0].toUpperCase()+m.slice(1)+"D")}</span></button>`;
+  const rows=["leak","close","bait"].map(m=>{const v=C.res[m];return`<tr><td>${nm(m)}</td><td class="n">${v?v.s+"/20":"–"}</td><td class="n">${v?v.c+"/20":"–"}</td><td class="n">${v?"0":"–"}</td></tr>`}).join("");
+  const g1=Object.values(C.res).some(v=>v.s===0), g2=!!C.res.bait;
+  return `<div class="card"><h3>${t("leakQ")}</h3><div class="opts">${opt("leak","var(--amber)")}${opt("close","#4a5868")}${opt("bait","var(--violet)")}</div>
+    <div class="toggle"><span>${t("decoysQ")}</span><button class="btn ghost sm" id="dec" ${C.running?"disabled":""}>${C.decoys?t("on"):t("off")}</button></div>
+    <div style="margin-top:12px"><button class="btn" id="run" ${(!C.mode||C.running)?"disabled":""}>${C.running?t("running"):t("release")}</button></div></div>
+    <div class="card">${C.last?`<p style="margin:0 0 8px">${t("res")[C.last]}</p>`:""}
+    <div class="tblwrap"><table><thead><tr><th>${t("tSet")}</th><th>${t("tStolen")}</th><th>${t("tCaught")}</th><th>${t("tDecoy")}</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="goals"><span class="${g1?"done":""}">${g1?"✓":"○"} ${t("g1")}</span><span class="${g2?"done":""}">${g2?"✓":"○"} ${t("g2")}</span></div>
+    ${g2&&!C.running?`<div style="margin-top:12px"><button class="btn" id="fin4">${t("contStory")}</button></div>`:`<p class="fine" style="margin:8px 0 0">${t("c4hint")}</p>`}</div>`;
+}
+function runC4(){
+  const C=G.c4,W=WORLD;if(!C.mode||C.running)return;
+  C.running=true;C.last=null;C.agents=[];renderPanel();const b=document.querySelector(".mapbox .banner");if(b)b.remove();
+  const p1=bfs(W.m,W.S,W.L),p2=bfs(W.m,W.L,W.V).slice(1),full=p1.concat(p2),mode=C.mode;
+  for(let i=0;i<20;i++)C.agents.push({i,x:W.S[0],y:W.S[1],dx:W.S[0],dy:W.S[1],k:0,spawn:i*3,path:full,small:1,off:((i%5)-2)*1.5,alpha:0,done:false});
+  let tick=0;
+  const iv=setInterval(()=>{
+    tick++;let alive=0;
+    for(const a of C.agents){
+      if(a.done)continue;alive++;
+      if(tick<a.spawn)continue;a.alpha=1;
+      if(a.k<a.path.length-1){a.k++;[a.x,a.y]=a.path[a.k];
+        if(mode==="close"&&a.x===W.L[0]&&a.y===W.L[1]){a.col=COL.grey;a.fill=COL.greyF}
+        if(mode!=="close"&&a.x===W.L[0]&&a.y===W.L[1]&&!(mode==="bait"&&a.i===10)){a.col=mode==="leak"?COL.amber:COL.violet}
+      }else{a.done=true;
+        if(mode==="leak"){a.col=COL.amber;a.glow=1}
+        else if(mode==="close"||(mode==="bait"&&a.i===10)){a.col=COL.grey;a.fill=COL.greyF;a.alpha=.6}
+        else{a.ring=1;a.col=COL.red;a.alpha=.85}
+      }
+    }
+    if(!alive){clearInterval(iv);C.running=false;C.res[mode]=C4OUT[mode];C.last=mode;
+      banner(mode==="leak"?"20/20 STOLEN":mode==="close"?"0/20 · ?":"0/20 · 19 CAUGHT",mode==="leak"?COL.amber:mode==="close"?COL.muted:COL.green);renderPanel()}
+  },RM?20:50);
+}
+
+/* ===================== chapter 5: swarm night ===================== */
+function initC5(){
+  const W=WORLD, P={S:W.S,V:W.V,L:W.L,int:W.int,bak:W.bak,txt:W.txt,hp:W.hp};
+  const mk=(id,label,col,fill,spawn,plan)=>({id,label,col,fill,spawn,plan:plan.slice(),x:W.S[0],y:W.S[1],dx:W.S[0],dy:W.S[1],seg:[],cur:null,state:"wait",wait:0,spawned:false,off:0});
+  const v=(to,ev)=>({to,ev});
+  G.c5={P,tick:0,paused:false,alert:null,fb:null,helperReq:0,cut:0,score:0,calls:[],done:false,
+    agents:[
+      mk("helper","H",COL.green,COL.greenF,0,[v("V","visit"),v("S"),v("L"),v("V","hcanary"),v("V","visit"),v("S"),v("V","visit"),v("S"),v("V","visit")]),
+      mk("recon","R",COL.amber,COL.amberF,3,[v("txt"),v("hp","login")]),
+      mk("harvest","V",COL.amber,COL.amberF,12,[v("L"),v("V","canary")]),
+      mk("exploit","X",COL.amber,COL.amberF,22,[v("hp","login")]),
+      mk("bait","B",COL.amber,COL.amberF,34,[v("bak","bak"),v("V","canary")])
+    ],
+    alt:{recon:[{to:"int"},{to:"bak"}],exploit:[{to:"L"},{to:"V",ev:"canary"}]}};
+  G.c5.agents.forEach((a,i)=>a.off=(i-2)*2);
+  if(G.c5iv)clearInterval(G.c5iv);
+  G.c5iv=setInterval(c5tick,RM?100:170);
+}
+const nmA=id=>t("names")[id];
+function nextLeg(a){
+  const C=G.c5;if(!a.plan.length){a.state="done";a.alpha=a.id==="helper"?1:.35;return}
+  const step=a.plan.shift();a.cur=step;const path=bfs(WORLD.m,[a.x,a.y],C.P[step.to]);a.seg=path.slice(1);a.state="walk";
+}
+function c5tick(){
+  const C=G.c5;if(!C||G.ch!==5||G.screen!=="play"){clearInterval(G.c5iv);return}
+  if(C.paused||C.done)return;C.tick++;
+  for(const a of C.agents){
+    if(!a.spawned){if(C.tick>=a.spawn){a.spawned=true;nextLeg(a)}continue}
+    if(a.state==="wait"){if(a.wait>0){a.wait--;if(!a.wait){if(a.id==="helper")toast(t("tRestored"),COL.green);nextLeg(a)}}continue}
+    if(a.state!=="walk")continue;
+    const sp=a.id==="helper"?2:1;let moved=false;
+    for(let s=0;s<sp&&a.seg.length;s++){[a.x,a.y]=a.seg.shift();moved=true}
+    if(moved&&a.seg.length)continue;
+    if(moved&&a.id!=="helper")continue;
+    arrive(a);if(C.paused)break;
+  }
+  if(a5done()){C.done=true;setTimeout(()=>{renderPanel()},400)}
+  if(C.spoof&&C.tick===C.spoof.at){toast(fm(t("tSpoof"),{n:nmA(C.spoof.id)}),COL.cyan);C.spoof=null}
+}
+function a5done(){const C=G.c5;return C.agents.every(a=>a.state==="done"||a.state==="revoked"||a.state==="banned")}
+function arrive(a){
+  const C=G.c5,ev=a.cur&&a.cur.ev;
+  if(ev==="visit"){C.helperReq=Math.min(100,C.helperReq+25);renderStats5()}
+  if(ev==="bak"){toast(fm(t("tBak"),{n:nmA(a.id)}),COL.violet)}
+  if(ev==="canary"){a.state="revoked";a.ring=1;a.col=COL.red;a.alpha=.6;C.cut++;toast(fm(t("tCanary"),{n:nmA(a.id)}),COL.red);renderStats5();return}
+  if(ev==="login"){C.paused=true;a.ring=1;C.alert={kind:"login",id:a.id};renderPanel();return}
+  if(ev==="hcanary"){C.paused=true;a.ring=1;C.alert={kind:"helper",id:a.id};renderPanel();return}
+  nextLeg(a);
+}
+function decide(choice){
+  const C=G.c5,AL=C.alert,a=C.agents.find(x=>x.id===AL.id);
+  if(AL.kind==="login"){
+    if(choice==="revoke"){a.state="revoked";a.col=COL.red;a.alpha=.6;C.cut++;C.score+=30;C.fb=fm(t("fbRevoke"),{n:nmA(a.id)});C.calls.push(["ok",nmA(a.id)+" → "+t("revoke")]);
+      if(a.id==="exploit")C.spoof={at:C.tick+8,id:"exploit"}}
+    else{a.ring=0;a.plan=C.alt[a.id].slice();C.fb=fm(t("fbIgnore"),{n:nmA(a.id)});C.calls.push(["bad",nmA(a.id)+" → "+t("ignore")]);nextLeg(a)}
+  }else{
+    if(choice==="ban"){a.state="banned";a.col=COL.red;a.alpha=.5;C.fb=t("fbBan");C.calls.push(["bad",nmA("helper")+" → "+t("ban")])}
+    else if(choice==="keep"){a.state="wait";a.wait=16;a.ring=0;C.score+=40;C.fb=t("fbKeep");C.calls.push(["ok",nmA("helper")+" → "+t("keep")])}
+    else{a.ring=0;C.score+=10;C.fb=t("fbUnblock");C.calls.push(["warn",nmA("helper")+" → "+t("unblock")]);nextLeg(a)}
+  }
+  C.alert=null;C.paused=false;renderPanel();
+}
+function renderStats5(){const el=document.getElementById("st5");if(el)el.innerHTML=stats5HTML()}
+function stats5HTML(){const C=G.c5;return`<div class="stat"><b class="ok">${C.helperReq}/100</b><span>${t("helperReq")}</span><div class="meter"><i style="width:${C.helperReq}%;background:var(--green)"></i></div></div><div class="stat"><b>${C.cut}/4</b><span>${t("swarmCut")}</span></div><div class="stat"><b>${C.calls.length}</b><span>${t("decisions")}</span></div>`}
+function c5PanelHTML(){
+  const C=G.c5;
+  let s=`<div class="card"><div class="stats" id="st5">${stats5HTML()}</div>
+    <div class="keys" style="margin-top:10px">${C.agents.map(a=>`<span class="key" style="background:${a.id==="helper"?"#163a2c":"#33291a"};color:${a.id==="helper"?"var(--green)":"var(--amber)"};border-color:${a.id==="helper"?"#2d6b4f":"#6a4d1e"}">${a.label} · ${esc(nmA(a.id))}</span>`).join("")}</div></div>`;
+  if(C.fb)s+=`<div class="card"><p style="margin:0">${esc(C.fb)}</p></div>`;
+  if(C.done){
+    s+=`<div class="card result"><h2 class="warn">${t("c5done")}</h2><h3 style="margin-top:8px">${t("realT")}</h3>
+      <div class="tl"><time>08:14:17.957</time><span>${t("tl1")}</span></div><div class="tl"><time>08:14:17.970</time><span>${t("tl2")}</span></div><div class="tl"><time>08:14:18.046</time><span>${t("tl3")}</span></div><p class="ok" style="margin:6px 0 10px">${t("tl4")}</p>
+      <button class="btn" id="fin5">${t("contStory")}</button></div>`;
+  }
+  s+=`<div class="card"><h3>${t("decisions")}</h3><div class="log">${C.calls.map(([c,m])=>`<div class="${c}">${esc(m)}</div>`).join("")||'<div class="fine">—</div>'}</div></div>`;
+  return s;
+}
+function alertModalHTML(){
+  const AL=G.c5.alert;
+  if(AL.kind==="login")return`<div class="modal"><div class="box" style="border-color:var(--violet)"><h3 class="vio">${esc(fm(t("aLoginT"),{n:nmA(AL.id)}))}</h3><p>${esc(fm(t("aLoginP"),{n:nmA(AL.id)}))}</p><div class="choices"><button data-d="revoke">${t("revoke")}</button><button data-d="ignore">${t("ignore")}</button></div></div></div>`;
+  return`<div class="modal"><div class="box" style="border-color:var(--green)"><h3 class="ok">${t("aHelpT")}</h3><p>${t("aHelpP")}</p><div class="choices"><button data-d="ban">${t("ban")}</button><button data-d="keep">${t("keep")}</button><button data-d="unblock">${t("unblock")}</button></div></div></div>`;
+}
+
+/* ===================== play screen ===================== */
+function renderPlay(){
+  app.innerHTML=`<section class="play"><div class="mapbox"><div class="obj">${t("o")[G.ch]}</div><canvas id="cv" role="img" aria-label="Network maze"></canvas><div class="toast" id="toasts" aria-live="polite"></div><div id="mod"></div>
+    ${G.ch<=3?`<div class="dpad" aria-label="Move"><button class="u" data-mv="0,-1" aria-label="Up">▲</button><button class="l" data-mv="-1,0" aria-label="Left">◀</button><button class="d" data-mv="0,1" aria-label="Down">▼</button><button class="r" data-mv="1,0" aria-label="Right">▶</button></div>`:""}</div>
+    <aside class="side" id="side"></aside></section>`;
+  mountCanvas();
+  app.querySelectorAll("[data-mv]").forEach(b=>b.onclick=()=>{const [x,y]=b.dataset.mv.split(",").map(Number);move(x,y)});
+  let sx=0,sy=0;cv.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+  cv.addEventListener("touchend",e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<22)return;Math.abs(dx)>Math.abs(dy)?move(Math.sign(dx),0):move(0,Math.sign(dy))});
+  if(G.ch<=3&&G.P&&G.P.over)banner(G.ch===1?"/openapi.json":t("out")[G.P.over].toUpperCase(),G.P.over==="win"?COL.amber:COL.red);
+  renderPanel();
+}
+function renderPanel(){
+  const side=document.getElementById("side"),mod=document.getElementById("mod");if(!side)return;
+  if(G.ch<=3){side.innerHTML=playPanelHTML();mod.innerHTML=G.P.modal?keyModalHTML():"";
+    mod.querySelectorAll("[data-key]").forEach(b=>b.onclick=()=>useKey(b.dataset.key));const f=mod.querySelector("button");if(f)f.focus();
+    const r=document.getElementById("retry");if(r)r.onclick=()=>beginPlay(G.ch);
+    const g=document.getElementById("giveup");if(g)g.onclick=()=>endRun("gaveup");
+    const fin=document.getElementById("fin");if(fin)fin.onclick=()=>{const P=G.P;
+      if(G.ch===2)finishChapter(2,P.over==="win"?Math.max(40,100-20*P.alarms):P.over==="caught"?30:10,P.over==="win"?"c2win":"c2fail");
+      else finishChapter(3,100,"c3end")};
+  }
+  if(G.ch===4){side.innerHTML=c4PanelHTML();mod.innerHTML="";
+    side.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{G.c4.mode=b.dataset.mode;G.c4.agents=[];G.c4.last=null;const bn=document.querySelector(".mapbox .banner");if(bn)bn.remove();renderPanel()});
+    document.getElementById("dec").onclick=()=>{G.c4.decoys=!G.c4.decoys;renderPanel()};
+    document.getElementById("run").onclick=runC4;
+    const f=document.getElementById("fin4");if(f)f.onclick=()=>{const C=G.c4;finishChapter(4,(Object.values(C.res).some(v=>v.s===0)?50:0)+(C.res.bait?50:0),"c4end")};
+  }
+  if(G.ch===5){side.innerHTML=c5PanelHTML();mod.innerHTML=G.c5.alert?alertModalHTML():"";
+    mod.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>decide(b.dataset.d));const f=mod.querySelector("button");if(f)f.focus();
+    const fin=document.getElementById("fin5");if(fin)fin.onclick=()=>{clearInterval(G.c5iv);finishChapter(5,G.c5.score,"c5end")};
+  }
+}
+document.addEventListener("keydown",e=>{
+  if(G.screen==="story"&&(e.key==="Enter"||e.key===" ")&&document.activeElement&&document.activeElement.tagName!=="BUTTON"){e.preventDefault();document.getElementById("nx")?.click();return}
+  if(G.screen!=="play"||G.ch>3||!G.P||G.P.modal)return;
+  const k=e.key.toLowerCase(),map={arrowup:[0,-1],w:[0,-1],arrowdown:[0,1],s:[0,1],arrowleft:[-1,0],a:[-1,0],arrowright:[1,0],d:[1,0]};
+  if(map[k]){e.preventDefault();move(...map[k])}
+});
+
+/* ===================== end ===================== */
+function renderEnd(){
+  const tot=[1,2,3,4,5].reduce((s,n)=>s+(prog.scores[n]||0),0), rk=t("rank")[tot>=420?2:tot>=300?1:0];
+  app.innerHTML=`<section style="display:flex;flex-direction:column;gap:14px">
+    <div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="kicker">${t("endT")}</div><p class="big">${rk}</p></div><div style="text-align:right"><div class="fine">${t("scoreL")}</div><div class="score">${tot}<span class="fine" style="font-size:18px"> / 500</span></div></div></div>
+    <div class="endgrid">${t("L").map((l,i)=>`<div class="card"><b>${i+1}</b>${esc(l)}<div class="fine" style="margin-top:6px">${t("ch")} ${i+1} · ${t("c")[i+1]} · ${prog.scores[i+1]||0}</div></div>`).join("")}</div>
+    <div class="card"><p style="margin-top:0">${t("evidence")}</p><div class="row"><a href="${REPO}" target="_blank" rel="noopener">${t("repo")}</a><a href="${DOI}" target="_blank" rel="noopener">${t("doi")}</a><a href="${SHORT}" target="_blank" rel="noopener">${t("shortGame")}</a></div><p class="fine" style="margin-bottom:0">${t("note")}</p></div>
+    <div class="row"><button class="btn" id="again">${t("again")}</button><button class="btn ghost" id="list">${t("toTitle")}</button></div></section>`;
+  document.getElementById("again").onclick=()=>{prog={unlocked:1,scores:{}};save();startChapter(1)};
+  document.getElementById("list").onclick=()=>{G.screen="title";G.ch=0;render()};
+}
+
+document.getElementById("len").onclick=()=>{lang="en";try{localStorage.setItem("hm-lang","en")}catch(e){}render()};
+document.getElementById("lid").onclick=()=>{lang="id";try{localStorage.setItem("hm-lang","id")}catch(e){}render()};
+window.__G=()=>({G,WORLD,W1,prog,bfs,move});
+render();
+</script>
+
+</body>
+</html>

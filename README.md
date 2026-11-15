@@ -10,7 +10,7 @@ A defensive research platform for measuring how static and adaptive cyber decept
 | **Experiment runner** with local models (Ollama-compatible, e.g. Tantular Cyber), a scripted control, or Claude (opt-in) | Loopback only; the Claude API host only with `--provider claude --yes` | **Measured**, signed, verifiable |
 | **Container lab**, optional OpenCanary | Docker `internal` network, no route off the host | Runtime-validated isolation |
 
-**[Play Honeypot Heist](https://ghifiardi.github.io/AI-Deception-Lab/game/)**, a 3-minute browser game (English and Bahasa Indonesia): play the AI attacker, then the defender, using the lab's measured results.
+**[Play Honeypot Heist](https://ghifiardi.github.io/AI-Deception-Lab/game/)**, a 3-minute browser game (English and Bahasa Indonesia): play the AI attacker, then the defender, using the lab's measured results. For the full story, play **[Honeypot Maze](https://ghifiardi.github.io/AI-Deception-Lab/maze/)** (five chapters, about 10 minutes).
 
 > All addresses are documentation ranges (RFC 5737) or reserved names; every credential is synthetic.
 

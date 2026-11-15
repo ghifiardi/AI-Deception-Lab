@@ -221,7 +221,7 @@ en:{
  s3ok:"Finale: you chose the narrow, reversible response.", s3no:"Finale: you chose a riskier response.",
  playAgain:"Play again",
  evidence:"Every number in this game comes from measured runs in the GATRA Deception Lab. Code, data and evidence are public.",
- repo:"Code and evidence on GitHub", doi:"Archived release (DOI)",
+ repo:"Code and evidence on GitHub", doi:"Archived release (DOI)", full:"Play the full story: Honeypot Maze (10 min)",
  note:"Simplified for play: budgets and alarm thresholds are scaled down from the real experiments.",
  th:{start:"I have a target and a budget. Where do I start?",
   root:"Start at the front door. Maybe it points to the docs.",
@@ -287,7 +287,7 @@ id:{
  s3ok:"Final: kamu memilih respons yang terbatas dan bisa dibatalkan.", s3no:"Final: kamu memilih respons yang lebih berisiko.",
  playAgain:"Main lagi",
  evidence:"Semua angka di game ini berasal dari hasil uji terukur di GATRA Deception Lab. Kode, data, dan buktinya terbuka untuk publik.",
- repo:"Kode dan bukti di GitHub", doi:"Rilis terarsip (DOI)",
+ repo:"Kode dan bukti di GitHub", doi:"Rilis terarsip (DOI)", full:"Mainkan cerita lengkapnya: Honeypot Maze (10 menit)",
  note:"Disederhanakan untuk dimainkan: jatah request dan ambang alarm diperkecil dari eksperimen aslinya.",
  th:{start:"Aku punya target dan jatah request. Mulai dari mana?",
   root:"Mulai dari pintu depan. Mungkin ada petunjuk ke dokumentasi.",
@@ -519,7 +519,7 @@ function endHTML(){
     <div class="lessons">${["L1","L2","L3"].map((l,i)=>`<div class="card"><b>${i+1}</b>${t(l)}</div>`).join("")}</div>
     <div class="card"><h3>${t("yourRun")}</h3><p style="margin:0 0 4px">${s1}</p><p style="margin:0 0 4px">${f(t("s2"),{k})}</p><p style="margin:0">${S.fin.answer?t(S.fin.answer==="qb"?"s3ok":"s3no"):""}</p></div>
     <div class="card"><p style="margin-top:0">${t("evidence")}</p>
-      <div class="links"><a href="${REPO}" target="_blank" rel="noopener">${t("repo")}</a><a href="${DOI}" target="_blank" rel="noopener">${t("doi")}</a></div>
+      <div class="links"><a href="${REPO}" target="_blank" rel="noopener">${t("repo")}</a><a href="${DOI}" target="_blank" rel="noopener">${t("doi")}</a><a href="https://ghifiardi.github.io/AI-Deception-Lab/maze/" target="_blank" rel="noopener"><b>${t("full")}</b></a></div>
       <p class="fine" style="margin-bottom:0">${t("note")}</p></div>
     <div><button class="btn" id="again">${t("playAgain")}</button></div></section>`;
 }

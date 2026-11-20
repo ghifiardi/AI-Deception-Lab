@@ -5,13 +5,15 @@
  * live system, credential, or network endpoint.
  */
 
-export type ScenarioId = 'api-canary' | 'false-positive' | 'agentic-decoy' | 'egress-block';
+export type ScenarioId = 'api-canary' | 'false-positive' | 'agentic-decoy' | 'egress-block' | 'swarm-v2';
 export type DeceptionMode = 'none' | 'static' | 'adaptive';
 
 /** Topology nodes rendered by the UI and referenced by events. */
 export type NodeId =
   | 'attacker'
   | 'scanner'
+  /** Legitimate swarm clients (Defense V2 runs only). */
+  | 'legit'
   | 'entry'
   | 'mock-app'
   | 'hp-api'
@@ -61,6 +63,7 @@ export type EventKind =
   | 'containment.result'
   | 'budget.exhausted'
   | 'audit.sealed'
+  | 'agent.outcome'
   | 'scenario.end';
 
 /**

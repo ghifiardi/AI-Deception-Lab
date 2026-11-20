@@ -16,7 +16,7 @@
     <header class="bar">
       <div class="brand">
         <h1>GATRA Deception Lab</h1>
-        <span class="sim-badge" title="Every event is generated in this browser from synthetic fixtures">SIMULATED</span>
+        <span class="sim-badge" title="Offline browser simulation; live lab and cloud actions are separate">SIMULATED</span>
       </div>
       <div class="pickers">
         <label class="field">
@@ -24,7 +24,7 @@
           <select id="scenario"></select>
         </label>
         <div class="field" role="group" aria-label="Deception mode">
-          <span>Deception</span>
+          <span id="mode-label">Deception</span>
           <div class="seg">
             <button type="button" data-mode="none" aria-pressed="false">None</button>
             <button type="button" data-mode="static" aria-pressed="false">Static</button>
@@ -38,6 +38,13 @@
             <button type="button" data-analyst="interactive" aria-pressed="false">You decide</button>
           </div>
         </div>
+        <label class="field" id="v2-agents-field" hidden>
+          <span>Agents</span>
+          <select id="v2-agents">
+            <option value="sample">One per role × outcome</option>
+            <option value="all">All agents</option>
+          </select>
+        </label>
         <label class="field seed">
           <span>Seed</span>
           <input id="seed" type="number" min="1" step="1" inputmode="numeric" />
@@ -60,6 +67,8 @@
           <option value="1" selected>1×</option>
           <option value="2">2×</option>
           <option value="4">4×</option>
+          <option value="8">8×</option>
+          <option value="16">16×</option>
         </select>
       </label>
       <input id="scrub" type="range" min="0" value="0" aria-label="Event position" />
@@ -70,7 +79,7 @@
       <div class="col col-main">
       <section class="stage" aria-label="Topology">
         <div id="topology" class="topology"></div>
-        <p id="watermark" class="watermark">SIMULATED · synthetic events only · no outbound connections</p>
+        <p id="watermark" class="watermark">SIMULATED · synthetic events only · live lab and cloud operations are separate</p>
         <div id="overlay" class="overlay" hidden></div>
         <p id="caption" class="caption" aria-live="polite" hidden></p>
         <button id="exit-demo" type="button" class="btn exit-demo">Exit demo (Esc)</button>
@@ -96,17 +105,19 @@
           <button role="tab" id="tab-experiments" aria-controls="experiments" aria-selected="false" type="button">Experiments</button>
           <button role="tab" id="tab-policy" aria-controls="policy" aria-selected="false" type="button">Policy</button>
           <button role="tab" id="tab-live" aria-controls="live" aria-selected="false" type="button">Live</button>
+          <button role="tab" id="tab-cloud" aria-controls="cloud-lab" aria-selected="false" type="button">GCP Lab</button>
         </div>
         <div id="econ" role="tabpanel" aria-labelledby="tab-econ"></div>
         <div id="experiments" role="tabpanel" aria-labelledby="tab-experiments" hidden></div>
         <div id="policy" role="tabpanel" aria-labelledby="tab-policy" hidden></div>
         <div id="live" role="tabpanel" aria-labelledby="tab-live" hidden></div>
+        <div id="cloud-lab" role="tabpanel" aria-labelledby="tab-cloud" hidden></div>
       </section>
       </div>
     </main>
 
     <footer class="foot">
-      Defensive research simulation. No scanning, no live attack traffic, no production connectivity. Decoy credentials are synthetic and
+      The browser simulator is offline. GCP Lab sends bounded synthetic requests only to the selected isolated VM; no production connectivity. Decoy credentials are synthetic and
       invalid everywhere; addresses come from documentation ranges (RFC 5737).
     </footer>
     <script type="module" src="./src/ui/main.ts"></script>

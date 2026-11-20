@@ -15,6 +15,11 @@ import { bundledExperiments, renderExperiments } from './experiments.ts';
 import type { ExperimentResult } from './experiments.ts';
 import { Topology } from './topology.ts';
 import { initLive } from './live.ts';
+import { initOperator } from './operator.ts';
+import { compileRecordedV2, parseRecorded } from '../engine/v2.ts';
+import type { V2Recorded } from '../engine/v2.ts';
+import { renderV2Economics, renderV2Panel } from './v2panel.ts';
+import { fetchRecorded, fetchRecordedList } from './recorded.ts';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -38,6 +43,10 @@ interface App {
   /** Demo mode: playback pauses until this time (ms, performance.now) so captions can be read. */
   holdUntil: number;
   onReveal?: (e: LabEvent) => void;
+  /** A recorded VM1/VM2 result being replayed (replaces the scenario). */
+  recorded?: V2Recorded;
+  /** Recorded replay: one agent per role × outcome (true) or every agent. */
+  v2Sample: boolean;
 }
 
 /** How long demo playback holds on each narrated event. */
@@ -61,6 +70,7 @@ const app: App = {
   holdUntil: 0,
   analystMode: params.get('analyst') === 'interactive' ? 'interactive' : 'scripted',
   analystInputs: [],
+  v2Sample: params.get('agents') !== 'all',
 };
 
 const topology = new Topology($('topology'));
@@ -70,15 +80,110 @@ const timeline = new Timeline($('timeline'));
 
 const scenarioSel = $<HTMLSelectElement>('scenario');
 for (const s of SCENARIOS) scenarioSel.append(h('option', { value: s.id }, s.title));
+const recordedGroup = h('optgroup', { label: 'Recorded runs (GCP / SSH lab)' });
+const listOpt = h('option', { value: 'list-recorded' }, 'Show runs recorded by the dashboard…');
+const loadFileOpt = h('option', { value: 'load-file' }, 'Load a result file…');
+const localOpt = h('option', { value: 'rec-local', hidden: '' }, 'Loaded file');
+recordedGroup.append(listOpt, loadFileOpt, localOpt);
+scenarioSel.append(recordedGroup);
 scenarioSel.value = app.scenario;
+const resultInput = h('input', { type: 'file', accept: 'application/json,.json', hidden: '' });
+document.body.append(resultInput);
 scenarioSel.addEventListener('change', () => {
-  app.scenario = scenarioSel.value as ScenarioId;
+  const v = scenarioSel.value;
+  if (v === 'load-file') {
+    syncScenarioSelect();
+    resultInput.click();
+    return;
+  }
+  if (v === 'list-recorded') {
+    syncScenarioSelect();
+    void listRecorded(true);
+    return;
+  }
+  if (v.startsWith('rec:')) {
+    void loadRecorded(v.slice(4));
+    return;
+  }
+  if (v === 'rec-local') return;
+  app.recorded = undefined;
+  app.scenario = v as ScenarioId;
+  recompile();
+});
+resultInput.addEventListener('change', async () => {
+  const f = resultInput.files?.[0];
+  resultInput.value = '';
+  if (!f) return;
+  try {
+    const rec = parseRecorded(JSON.parse(await f.text()));
+    localOpt.textContent = `Loaded: ${f.name.slice(0, 60)} · ${rec.mode}`;
+    localOpt.hidden = false;
+    showRecorded(rec);
+  } catch (err) {
+    setLoadStatus(`Could not load ${f.name}: ${err instanceof Error ? err.message : String(err)}`);
+  }
+});
+
+/** Recorded results are listed by the local dashboard server, on request only. */
+async function listRecorded(announce: boolean) {
+  try {
+    const results = await fetchRecordedList();
+    for (const r of results) {
+      if (recordedGroup.querySelector(`option[value="rec:${CSS.escape(r.file)}"]`)) continue;
+      const when = (r.startedAt ?? '').replace('T', ' ').slice(0, 16);
+      const host = r.stackId?.split(':')[1] ?? '';
+      recordedGroup.insertBefore(h('option', { value: `rec:${r.file}` }, `${(r.label ?? 'run').toUpperCase()} · ${r.mode ?? '?'}${r.attested ? '' : ' (unattested)'} · ${r.agents} agents · ${when}${host ? ` · ${host}` : ''}`), loadFileOpt);
+    }
+    listOpt.textContent = `Refresh recorded runs (${results.length} found)`;
+    syncScenarioSelect();
+    if (announce) setLoadStatus(results.length ? `${results.length} recorded run(s) added to the Scenario list under "Recorded runs".` : 'No recorded swarm results yet. Run a test from the GCP Lab tab first.');
+  } catch (err) {
+    if (announce) setLoadStatus(`Recorded runs need the local dashboard server (npm run deception-lab); use "Load a result file…" otherwise. ${err instanceof Error ? err.message : ''}`);
+  }
+}
+
+async function loadRecorded(file: string) {
+  setLoadStatus(`Loading ${file}…`);
+  try {
+    showRecorded(parseRecorded(await fetchRecorded(file), file));
+    setLoadStatus('');
+  } catch (err) {
+    setLoadStatus(`Could not load ${file}: ${err instanceof Error ? err.message : String(err)}`);
+    syncScenarioSelect();
+  }
+}
+
+function showRecorded(rec: V2Recorded) {
+  app.recorded = rec;
+  app.analystMode = 'scripted';
+  setLoadStatus('');
+  recompile();
+}
+
+function setLoadStatus(text: string) {
+  const el = $('summary');
+  if (text) el.textContent = text;
+}
+
+function syncScenarioSelect() {
+  if (!app.recorded) scenarioSel.value = app.scenario;
+  else if (app.recorded.file) scenarioSel.value = `rec:${app.recorded.file}`;
+  else scenarioSel.value = 'rec-local';
+}
+
+const agentsSel = $<HTMLSelectElement>('v2-agents');
+agentsSel.value = app.v2Sample ? 'sample' : 'all';
+agentsSel.addEventListener('change', () => {
+  app.v2Sample = agentsSel.value !== 'all';
   recompile();
 });
 
 const modeButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-mode]')];
+const modeLabels = new Map(modeButtons.map((b) => [b, b.textContent ?? '']));
+const V2_BUTTON: Record<string, string> = { none: 'Baseline', static: 'Hardened', adaptive: 'Defended' };
 for (const b of modeButtons) {
   b.addEventListener('click', () => {
+    if (app.recorded) return;
     app.mode = b.dataset.mode as DeceptionMode;
     recompile();
   });
@@ -147,16 +252,40 @@ document.addEventListener('keydown', (ev) => {
 function recompile() {
   setPlaying(false);
   app.analystInputs = [];
-  app.run = compileRun({ scenario: app.scenario, mode: app.mode, seed: app.seed, policy: app.policy, analyst: analystConfig() });
-  scenarioSel.value = app.scenario;
-  modeButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === app.mode)));
-  analystButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.analyst === app.analystMode)));
+  if (app.recorded) {
+    const c = compileRecordedV2(app.recorded, app.v2Sample);
+    app.run = { ...c, policy: app.policy, analyst: { mode: 'scripted' } };
+    app.mode = c.mode;
+  } else {
+    if (app.scenario === 'swarm-v2') app.analystMode = 'scripted';
+    app.run = compileRun({ scenario: app.scenario, mode: app.mode, seed: app.seed, policy: app.policy, analyst: analystConfig() });
+  }
+  const v2 = app.run.v2;
+  syncScenarioSelect();
+  modeButtons.forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.mode === app.mode));
+    b.textContent = v2 ? V2_BUTTON[b.dataset.mode!]! : modeLabels.get(b)!;
+    b.disabled = Boolean(app.recorded);
+    b.title = app.recorded ? 'Fixed by the recorded run (attested DEFENSE_MODE)' : v2 ? 'DEFENSE_MODE for the simulated V2 stack' : '';
+  });
+  $('mode-label').textContent = v2 ? 'Defense mode' : 'Deception';
+  analystButtons.forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.analyst === app.analystMode));
+    b.disabled = Boolean(v2);
+    b.title = v2 ? 'Defense V2 has no analyst step' : '';
+  });
+  seedInput.disabled = Boolean(app.recorded);
+  seedInput.value = String(app.recorded ? (app.recorded.seed ?? '') : app.seed);
+  $('v2-agents-field').hidden = !app.recorded;
+  topology.setVariant(v2 ? 'v2' : 'classic', v2?.mode);
   const att = app.run.fixture.attacker;
   topology.setActors(att.kind === 'benign-scanner' ? 'scanner' : 'attacker', att.instrumented);
-  topology.setDecoysVisible(app.mode !== 'none');
+  topology.setDecoysVisible(v2 ? v2.mode === 'defended' : app.mode !== 'none');
   $('summary').textContent = app.run.fixture.summary;
   scrub.max = String(app.run.events.length);
-  renderEconomics($('econ'), compareModes(app.scenario, app.seed, app.policy), app.run);
+  setWatermark();
+  if (v2) renderV2Economics($('econ'), app.run);
+  else renderEconomics($('econ'), compareModes(app.scenario, app.seed, app.policy), app.run);
   renderPolicyPanel();
   syncUrl();
   reset();
@@ -193,16 +322,18 @@ function exportRun() {
     format: 'gatra-deception-lab/run-export@1',
     hashAlgorithm: 'sha256',
     exportedAt: new Date().toISOString(),
-    scenario: app.scenario,
+    scenario: app.run.v2 ? 'swarm-v2' : app.scenario,
     mode: app.mode,
-    seed: app.seed,
+    seed: app.run.seed,
+    v2: app.run.v2 ? { source: app.run.v2.source, defenseMode: app.run.v2.mode, agentsShown: app.run.v2.agents.length, agentsTotal: app.run.v2.totalAgents, recorded: app.run.v2.recorded ?? null } : undefined,
     policy: app.policy,
     analyst: analystConfig(),
     chainHead: app.run.events.at(-1)?.hash,
     events: app.run.events,
   };
   const url = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 1)], { type: 'application/json' }));
-  const a = h('a', { href: url, download: `deception-lab-${app.scenario}-${app.mode}-seed${app.seed}.json` });
+  const name = app.run.v2?.recorded ? `deception-lab-recorded-${app.run.v2.recorded.engagementId}` : `deception-lab-${app.scenario}-${app.mode}-seed${app.seed}`;
+  const a = h('a', { href: url, download: `${name.replace(/[^A-Za-z0-9_.-]/g, '-')}.json` });
   document.body.append(a);
   a.click();
   a.remove();
@@ -239,6 +370,13 @@ $('tab-live').addEventListener('click', () => {
   initLive($('live'));
 });
 
+let operatorStarted = false;
+$('tab-cloud').addEventListener('click', () => {
+  if (operatorStarted) return;
+  operatorStarted = true;
+  initOperator($('cloud-lab'));
+});
+
 function renderPolicyPanel() {
   renderPolicy(
     $('policy'),
@@ -259,6 +397,12 @@ function renderPolicyPanel() {
 
 function syncUrl() {
   if (demo.active) return;
+  if (app.recorded) {
+    const q = new URLSearchParams(app.recorded.file ? { recorded: app.recorded.file } : {});
+    if (!app.v2Sample) q.set('agents', 'all');
+    history.replaceState(null, '', `?${q}`);
+    return;
+  }
   const q = new URLSearchParams({ scenario: app.scenario, mode: app.mode, seed: String(app.seed) });
   if (app.analystMode === 'interactive') q.set('analyst', 'interactive');
   history.replaceState(null, '', `?${q}`);
@@ -315,9 +459,12 @@ function setPlaying(on: boolean) {
 let fastForward = false;
 function render() {
   const s = deriveState(app.run, app.count);
+  // V2 revokes peers one by one; the swarm as a whole is never "terminated".
+  if (app.run.v2 && s.nodes.attacker === 'terminated') delete s.nodes.attacker;
   topology.render(s);
   timeline.render(app.run, app.count);
-  renderDecisionPanel($('decision'), app.run, s, {
+  if (app.run.v2) renderV2Panel($('decision'), app.run, app.count);
+  else renderDecisionPanel($('decision'), app.run, s, {
     interactive: app.analystMode === 'interactive',
     inputs: app.analystInputs,
     onDecide: (ruleId, decision) => {
@@ -389,8 +536,32 @@ const wait = (ms: number, token: number) =>
   });
 
 function resetWatermark() {
-  $('watermark').textContent = 'SIMULATED · synthetic events only · no outbound connections';
-  $('watermark').classList.remove('measured');
+  setWatermark();
+}
+
+/** The badge always says where the events come from: SIMULATED or RECORDED. */
+function setWatermark() {
+  const wm = $('watermark');
+  const badge = document.querySelector<HTMLElement>('.sim-badge');
+  const v2 = app.run?.v2;
+  const rec = v2?.recorded;
+  let badgeText = 'SIMULATED';
+  let badgeTitle = 'Offline browser simulation; live lab and cloud actions are separate';
+  let text = 'SIMULATED · synthetic events only · live lab and cloud operations are separate';
+  if (v2 && rec) {
+    badgeText = 'RECORDED';
+    badgeTitle = 'Replay of a result file written by the swarm runner against a lab VM';
+    text = `RECORDED · ${(rec.label ?? 'run').toUpperCase()} · DEFENSE_MODE=${v2.mode}${rec.attested ? ' (attested)' : ' (NOT attested)'} · ${rec.stackId ?? 'unknown stack'} · requests and outcomes from the result file; timing between agents reconstructed`;
+  } else if (v2) {
+    text = `SIMULATED · mirrors live Defense V2 (DEFENSE_MODE=${v2.mode}) · checked against the real gateway in tests · no network`;
+  }
+  wm.textContent = text;
+  wm.classList.toggle('measured', Boolean(rec));
+  if (badge) {
+    badge.textContent = badgeText;
+    badge.title = badgeTitle;
+    badge.classList.toggle('recorded', Boolean(rec));
+  }
 }
 
 function setCaption(text: string) {
@@ -400,6 +571,7 @@ function setCaption(text: string) {
 
 async function runDemo() {
   const token = ++demo.token;
+  app.recorded = undefined;
   demo.active = true;
   document.body.classList.add('demo');
   window.__demo = { status: 'running', shot: 0, totalShots: DEMO_SHOTS.length };
@@ -518,5 +690,8 @@ $('exit-demo').addEventListener('click', () => stopDemo());
 
 recompile();
 requestAnimationFrame(frame);
+// An explicit ?recorded=<file> link opts in to the dashboard server; nothing is fetched otherwise.
+const recordedParam = params.get('recorded');
+if (recordedParam) void listRecorded(false).then(() => loadRecorded(recordedParam));
 if (params.get('demo') === '1') void runDemo();
 else if (params.get('autoplay') === '1') setPlaying(true);

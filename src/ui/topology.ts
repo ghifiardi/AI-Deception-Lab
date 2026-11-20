@@ -20,6 +20,7 @@ export const NODES: NodeDef[] = [
   { id: 'attacker', x: 90, y: 300, label: 'Synthetic attacker', sub: 'simulated source', shape: 'circle' },
   { id: 'scanner', x: 90, y: 300, label: 'Approved scanner', sub: 'vuln-scanner-01', shape: 'circle' },
   { id: 'harness', x: 90, y: 470, label: 'Lab harness', sub: 'budgets + token telemetry', shape: 'rect' },
+  { id: 'legit', x: 90, y: 470, label: 'Legit clients', sub: 'valid service key', shape: 'circle' },
   { id: 'entry', x: 270, y: 300, label: 'Public entry', sub: 'API gateway (mock)', shape: 'rect' },
   { id: 'mock-app', x: 520, y: 110, label: 'Mock app', sub: 'synthetic stand-in', shape: 'rect' },
   { id: 'hp-api', x: 500, y: 300, label: 'API honeypot', sub: '/api/v2/internal/*', shape: 'hex' },
@@ -55,7 +56,37 @@ const EDGES: [NodeId, NodeId, string?][] = [
   ['policy', 'CRA'],
   ['analyst', 'CRA'],
   ['CRA', 'CLA'],
+  // Defense V2 only
+  ['legit', 'entry', 'v2'],
+  ['entry', 'decoy-docs', 'v2'],
+  ['entry', 'egress-gw', 'v2'],
+  ['entry', 'collector', 'v2 telemetry'],
+  ['collector', 'policy', 'v2 telemetry'],
 ];
+
+export type Variant = 'classic' | 'v2';
+const NOT_IN_V2 = 'not in live V2';
+/** Defense V2 names for the nodes the live lab really has; the rest are dimmed. */
+const V2_LABELS: Partial<Record<NodeId, [string, string]>> = {
+  attacker: ['Red swarm agents', 'recon · harvest · exploit · bait · egress'],
+  legit: ['Legit clients', 'valid service key'],
+  entry: ['Gateway', 'Defense V2'],
+  'mock-app': ['Lab target', 'synthetic records API'],
+  'decoy-docs': ['Bait endpoints', '/debug/env · /backup/config.bak'],
+  collector: ['Collector', 'gateway events'],
+  'egress-gw': ['Egress policy', 'default deny · callouts'],
+  'internet-out': ['Outside world', 'never reached'],
+  policy: ['V2 rule', 'canary → revoke'],
+  CRA: ['Revoke', 'peer · 15 min'],
+  CLA: ['Journal', 'per-agent chain'],
+};
+const V2_DIMMED: NodeId[] = ['hp-api', 'decoy-workload', 'ADA', 'TAA', 'analyst'];
+const V2_HIDDEN: NodeId[] = ['scanner', 'harness'];
+const ZONE_LABELS: Record<string, [string, string]> = {
+  'zone-internet': ['Internet (simulated)', 'Swarm (lab loopback)'],
+  'zone-deception': ['Isolated deception VLAN — no route to production', 'Bait served by the gateway'],
+  'zone-agents': ['GATRA agent roles (simulated)', 'Defense V2 response'],
+};
 
 export type CameraRegion = 'all' | 'entry' | 'deception' | 'egress' | 'agents' | 'telemetry';
 const REGIONS: Record<CameraRegion, [number, number, number, number]> = {
@@ -102,6 +133,8 @@ export function packetClass(e: LabEvent): string {
 export class Topology {
   readonly svg: SVGSVGElement;
   private nodeEls = new Map<NodeId, SVGGElement>();
+  private zoneLabels = new Map<string, SVGTextElement>();
+  private variant: Variant = 'classic';
   private packets: SVGGElement;
   private view: [number, number, number, number] = [...REGIONS.all];
   private camAnim = 0;
@@ -155,6 +188,40 @@ export class Topology {
       this.nodeEls.set(n.id, g);
     }
     this.packets = el('g', { class: 'packets' }, this.svg) as SVGGElement;
+    this.setVariant('classic');
+  }
+
+  /** classic = the GATRA simulator topology; v2 = what the live Defense V2 lab actually has. */
+  setVariant(variant: Variant, defenseMode?: string) {
+    this.variant = variant;
+    const v2 = variant === 'v2';
+    for (const n of NODES) {
+      const g = this.nodeEls.get(n.id)!;
+      const [label, sub] = v2 ? (V2_LABELS[n.id] ?? [n.label, V2_DIMMED.includes(n.id) ? NOT_IN_V2 : n.sub]) : [n.label, n.sub];
+      const [t1, t2] = g.querySelectorAll('text');
+      t1!.textContent = label;
+      t2!.textContent = sub;
+      g.querySelector('title')!.textContent = `${label} — ${sub}`;
+      g.classList.toggle('not-v2', v2 && V2_DIMMED.includes(n.id));
+      if (n.id === 'legit') g.style.display = v2 ? '' : 'none';
+      else if (v2 && V2_HIDDEN.includes(n.id)) g.style.display = 'none';
+      else if (!v2 && n.id !== 'scanner' && n.id !== 'harness') g.style.display = '';
+    }
+    for (const [cls, t] of this.zoneLabels) {
+      const pair = ZONE_LABELS[cls];
+      if (pair) t.textContent = v2 ? pair[1] : pair[0];
+      if (v2 && cls === 'zone-deception' && defenseMode && defenseMode !== 'defended') t.textContent = `No bait: DEFENSE_MODE=${defenseMode}`;
+    }
+    this.svg.querySelectorAll<SVGLineElement>('[data-edge]').forEach((l) => {
+      const [a, b] = l.dataset.edge!.split('>') as [NodeId, NodeId];
+      const v2Edge = l.classList.contains('v2');
+      const dim = v2 && (V2_DIMMED.includes(a) || V2_DIMMED.includes(b));
+      const hidden = v2 ? V2_HIDDEN.includes(a) || V2_HIDDEN.includes(b) || ['scanner', 'harness'].includes(a) : v2Edge || a === 'legit';
+      if (v2Edge || v2) l.style.display = hidden ? 'none' : '';
+      l.classList.toggle('not-v2', dim);
+    });
+    // The egress deny mark is real in both variants (classic egress-block and V2 callout probe).
+    this.svg.querySelector('.deny-mark')?.classList.remove('not-v2');
   }
 
   private zone(parent: Element, x: number, y: number, w: number, h: number, label: string, cls: string) {
@@ -162,10 +229,12 @@ export class Topology {
     el('rect', { x, y, width: w, height: h, rx: 10 }, g);
     const t = el('text', { x: x + 10, y: y + 18, class: 'zone-label' }, g);
     t.textContent = label;
+    this.zoneLabels.set(cls, t as SVGTextElement);
     return g;
   }
 
   setActors(attackerKind: 'scanner' | 'attacker', showHarness: boolean) {
+    if (this.variant === 'v2') return;
     this.nodeEls.get('attacker')!.style.display = attackerKind === 'attacker' ? '' : 'none';
     this.nodeEls.get('scanner')!.style.display = attackerKind === 'scanner' ? '' : 'none';
     this.nodeEls.get('harness')!.style.display = showHarness ? '' : 'none';

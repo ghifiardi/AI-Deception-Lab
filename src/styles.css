@@ -85,6 +85,7 @@ select, input[type='number'] {
 }
 .btn:hover { border-color: var(--muted); }
 .btn-primary { background: var(--telemetry); color: #04282a; border-color: transparent; font-weight: 600; min-width: 84px; }
+.btn-danger { background: var(--deny); color: #fff; border-color: transparent; font-weight: 600; }
 .btn-demo { border-color: var(--sim); color: var(--sim); background: transparent; }
 
 .summary { margin: 0; padding: 10px 20px 0; color: var(--muted); max-width: 80ch; }
@@ -369,3 +370,68 @@ body.demo .side { max-height: calc(100vh - 32px); overflow: hidden; }
 .live-deny { color: var(--deny); font-weight: 600; }
 .live-warn { color: #d0a215; }
 .live-ok { color: var(--ok); }
+
+/* Live monitoring uses the full dashboard canvas instead of the analysis sidebar. */
+.grid:has(#live:not([hidden])) { grid-template-columns: minmax(0, 1fr); }
+.grid:has(#live:not([hidden])) > .col-main { display: none; }
+.grid:has(#live:not([hidden])) > .col-side { display: block; min-width: 0; }
+.grid:has(#live:not([hidden])) #decision { display: none; }
+.grid:has(#live:not([hidden])) .tabs { min-height: calc(100vh - 180px); }
+.grid:has(#live:not([hidden])) #live { width: min(100%, 1800px); margin: 0 auto; }
+.grid:has(#live:not([hidden])) .live-timeline { max-height: min(58vh, 760px); min-height: 280px; }
+
+/* Explicit local operator controls for GCP swarm lifecycle. */
+.operator-panel { display: flex; flex-direction: column; gap: 10px; }
+.operator-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.operator-field { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: var(--s-1); }
+.operator-field input, .operator-field select, .operator-grid select, .operator-grid input { width: 100%; min-width: 0; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; font: inherit; }
+.operator-actions { flex-wrap: wrap; }
+.operator-actions button:disabled { opacity: .48; cursor: not-allowed; }
+.operator-output { max-height: 260px; overflow: auto; padding: 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--s-1); }
+.operator-result { overflow-wrap: anywhere; }
+.operator-dialog { max-width: 460px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+.operator-dialog::backdrop { background: rgba(0, 0, 0, .55); }
+
+/* The cloud workflow is an operator workspace, not a narrow analysis sidebar. */
+.grid:has(#cloud-lab:not([hidden])) { grid-template-columns: minmax(0, 1fr); }
+.grid:has(#cloud-lab:not([hidden])) > .col-main { display: none; }
+.grid:has(#cloud-lab:not([hidden])) > .col-side { display: block; min-width: 0; }
+.grid:has(#cloud-lab:not([hidden])) .tabs { min-height: calc(100vh - 180px); }
+.grid:has(#cloud-lab:not([hidden])) .operator-panel { max-width: 1500px; margin: 0 auto; }
+.grid:has(#cloud-lab:not([hidden])) .operator-output { max-height: min(58vh, 760px); min-height: 260px; }
+
+/* Two-VM comparison (Live tab + GCP operator) */
+.live-compare, .operator-labs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 16px; align-items: start; }
+.live-pane, .operator-lab { min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.operator-lab h3 { margin-top: 0; }
+.live-agents-dense { grid-template-columns: repeat(auto-fill, 12px); gap: 3px; }
+.live-cell { width: 12px; height: 12px; border-radius: 2px; background: var(--line); }
+.live-cell-active { background: var(--telemetry); }
+.live-cell-done { background: var(--muted); }
+.live-cell-revoked { background: var(--deny); }
+.live-cell-breach { background: var(--attacker); }
+.live-cell-legit { background: var(--ok); }
+.operator-compare-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.operator-compare-table th, .operator-compare-table td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); }
+.operator-compare { overflow-x: auto; }
+.live-legend .live-cell { display: inline-block; vertical-align: -1px; margin-left: 8px; }
+
+/* ---------- Defense V2 alignment (simulated swarm / recorded replay) ---------- */
+.node.not-v2 { opacity: 0.22; }
+.node.not-v2 .sub { font-style: italic; }
+.edge.not-v2, .deny-mark.not-v2 { opacity: 0.15; }
+.sim-badge.recorded { background: var(--telemetry); color: #04282a; }
+.v2-warn { color: var(--deny); font-size: var(--s-1); margin: 8px 0 0; }
+.v2-agents th[scope='row'] { font-size: 0.78rem; }
+.v2-o-success { color: var(--deny); font-weight: 600; }
+.v2-o-revoked { color: var(--ok); font-weight: 600; }
+.v2-o-blocked, .v2-o-no-objective { color: var(--muted); }
+.v2-o-error { color: var(--sim); }
+.v2-o-match { color: var(--ok); }
+.v2-o-miss { color: var(--deny); }
+.v2-sub { margin: 14px 0 6px; font-size: var(--s0); }
+.v2-o-success-legit { color: var(--ok); }
+.v2-o-blocked-legit, .v2-o-revoked-legit, .v2-o-no-objective-legit { color: var(--deny); font-weight: 600; }
+.v2-o-error-legit { color: var(--sim); }
+.seg button:disabled { opacity: 0.55; cursor: not-allowed; }
+.seg button[aria-pressed='true']:disabled { opacity: 0.8; }

@@ -13,6 +13,7 @@ paper/*.zip
 
 # Local secrets, never commit
 .env*
+.gatra/
 *.pem
 *.key
 

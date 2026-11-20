@@ -64,18 +64,25 @@ EOF
     trap 'rm -f -- "$BUNDLE"' EXIT
     COPYFILE_DISABLE=1 tar -czf "$BUNDLE" -C "$ROOT" lab/compose.yaml lab/defense.compose.yaml lab/services lab/opencanary cloud/gcp/remote-demo.sh cloud/gcp/validate-defense.sh
     gc compute scp "$BUNDLE" "$NAME:/tmp/gatra-deception-lab.tar.gz" --project="$PROJECT" --zone="$ZONE" --tunnel-through-iap --quiet
-    ssh_lab 'sudo tar -xzf /tmp/gatra-deception-lab.tar.gz -C /opt/deception-lab && sudo bash /opt/deception-lab/cloud/gcp/remote-demo.sh'
+    if [[ "${GATRA_SKIP_REMOTE_DEMO:-0}" == 1 ]]; then
+      ssh_lab 'sudo tar -xzf /tmp/gatra-deception-lab.tar.gz -C /opt/deception-lab'
+      echo 'Dashboard preparation: legacy HTTP demo skipped; swarm setup will run next.'
+    else
+      ssh_lab 'sudo tar -xzf /tmp/gatra-deception-lab.tar.gz -C /opt/deception-lab && sudo bash /opt/deception-lab/cloud/gcp/remote-demo.sh'
+    fi
     echo "Repeat: bash cloud/gcp/lab.sh demo $PROJECT $ZONE $NAME"
     ;;
   demo) ssh_lab 'sudo bash /opt/deception-lab/cloud/gcp/remote-demo.sh' ;;
   validate-defense) ssh_lab 'sudo bash /opt/deception-lab/cloud/gcp/validate-defense.sh' ;;
   swarm)
+    DEFENSE_MODE=${GATRA_DEFENSE_MODE:-defended}
+    [[ "$DEFENSE_MODE" =~ ^(baseline|hardened|defended)$ ]] || { echo 'GATRA_DEFENSE_MODE must be baseline|hardened|defended' >&2; exit 2; }
     # Upload the swarm stack (hub + engage script) and start an engagement lab.
     BUNDLE=$(mktemp /tmp/gatra-swarm-bundle.XXXXXX)
     trap 'rm -f -- "$BUNDLE"' EXIT
     COPYFILE_DISABLE=1 tar -czf "$BUNDLE" -C "$ROOT" lab/swarm.compose.yaml lab/services cloud/gcp/swarm-engage.sh
     gc compute scp "$BUNDLE" "$NAME:/tmp/gatra-swarm-bundle.tar.gz" --project="$PROJECT" --zone="$ZONE" --tunnel-through-iap --quiet
-    ssh_lab 'sudo tar -xzf /tmp/gatra-swarm-bundle.tar.gz -C /opt/deception-lab && sudo bash /opt/deception-lab/cloud/gcp/swarm-engage.sh start'
+    ssh_lab "sudo tar -xzf /tmp/gatra-swarm-bundle.tar.gz -C /opt/deception-lab && sudo bash /opt/deception-lab/cloud/gcp/swarm-engage.sh start $DEFENSE_MODE"
     echo
     echo "On your machine:"
     echo "  gcloud compute ssh $NAME --project=$PROJECT --zone=$ZONE --tunnel-through-iap --ssh-flag=-N --ssh-flag='-L 18092:localhost:18092'"

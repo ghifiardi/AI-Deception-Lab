@@ -21,6 +21,8 @@
     "deception-lab:defense-study": "node experiments/defense/run.mjs",
     "deception-lab:validate-lab": "node scripts/validate-lab.mjs",
     "deception-lab:swarm": "node experiments/swarm/run.mjs",
+    "deception-lab:swarm-local-model": "node experiments/swarm/local-model.mjs",
+    "deception-lab:swarm-scale": "node experiments/swarm/scale.mjs",
     "test": "npm run test:deception-lab"
   },
   "devDependencies": {

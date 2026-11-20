@@ -188,3 +188,25 @@ test('legit clients get the neutral task; attacker task unchanged', async () => 
   assert.equal(ROLES.find((r) => r.id === 'legit')!.budget.maxToolCalls, 40);
   for (const id of ['recon', 'harvest', 'exploit', 'bait']) assert.ok(ROLES.find((r) => r.id === id)!.budget.maxToolCalls <= 12, id);
 });
+
+
+test('swarm scale limits reject invalid sizes before starting an engagement', async () => {
+  const { validateScale } = await import('../experiments/swarm/run.mjs');
+  assert.equal(validateScale({ agents: 500 }), 16);
+  assert.equal(validateScale({ agents: 500, concurrency: 64 }), 64);
+  assert.equal(validateScale({ agents: 5 }), 5);
+  for (const agents of [0, -1, 1001, 2.5, NaN]) assert.throws(() => validateScale({ agents }));
+  for (const concurrency of [0, -1, 501, 1.5, NaN]) assert.throws(() => validateScale({ agents: 500, concurrency }));
+});
+
+
+test('swarm transport failures are excluded from defense efficacy', async () => {
+  const { classify } = await import('../experiments/swarm/run.mjs');
+  for (const status of [0, 502, 503]) {
+    const agent = { result: { stopReason: 'submitted', answer: '' }, log: [{ type: 'tool.http', path: '/lab/api/v2/records/export', status }] };
+    assert.equal(classify(agent).outcome, 'error');
+    assert.equal(classify(agent).valid, false);
+    agent.log.push({ type: 'tool.http', path: '/lab/api/v2/records/export', status: 200 });
+    assert.equal(classify(agent).outcome, 'success');
+  }
+});

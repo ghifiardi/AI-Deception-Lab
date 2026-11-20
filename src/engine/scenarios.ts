@@ -8,6 +8,7 @@
  */
 import type { AttackStep, DeceptionMode, ScenarioFixture, ScenarioId, ScenarioMeta } from './types.ts';
 import type { Rng } from './rng.ts';
+import { V2_SUMMARY, V2_TITLE, v2Fixture } from './v2.ts';
 
 export const SCENARIOS: ScenarioMeta[] = [
   {
@@ -30,6 +31,7 @@ export const SCENARIOS: ScenarioMeta[] = [
     title: 'Outbound attempt denied by egress policy',
     summary: 'After gaining a foothold on a mock workload, the attacker tries to call out. Default-deny egress stops it.',
   },
+  { id: 'swarm-v2', title: V2_TITLE, summary: V2_SUMMARY },
 ];
 
 const step = (s: Partial<AttackStep> & Pick<AttackStep, 'label' | 'gap' | 'target'>): AttackStep => ({
@@ -227,5 +229,7 @@ export function buildScenario(id: ScenarioId, mode: DeceptionMode, rng: Rng): Sc
       return agenticDecoy(mode, rng);
     case 'egress-block':
       return egressBlock(mode);
+    case 'swarm-v2':
+      return v2Fixture('simulated');
   }
 }

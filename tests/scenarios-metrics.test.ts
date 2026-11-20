@@ -128,15 +128,22 @@ test('lab source contains no network APIs (default demo is offline)', () => {
   };
   walk(root);
   assert.ok(files.length > 5);
-  // The Live tab is the one runtime-network component: it is opt-in and only
-  // ever connects to a hub URL, loopback by default. Everything else stays offline.
-  const offline = files.filter((f) => !f.endsWith('/ui/live.ts'));
+  // Opt-in network modules, each used only after an explicit operator action:
+  // the Live tab (hub URL, loopback by default), the GCP Lab tab (local dashboard
+  // API) and recorded-run replay (local dashboard API, read-only). Everything
+  // else, including the default simulator, stays offline.
+  const optIn = ['/ui/live.ts', '/ui/operator.ts', '/ui/recorded.ts'];
+  const offline = files.filter((f) => !optIn.some((m) => f.endsWith(m)));
+  assert.equal(offline.length, files.length - optIn.length, 'every opt-in module exists');
   const banned = /\b(fetch\s*\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon|navigator\.connection|https?:\/\/(?!www\.w3\.org))/;
   for (const f of offline) assert.doesNotMatch(readFileSync(f, 'utf8'), banned, f);
   const live = readFileSync(join(root, 'ui/live.ts'), 'utf8');
   // Default is the same-origin /hub proxy; the proxy itself must target loopback.
-  assert.match(live, /const DEFAULT_HUB = '\/hub';/, 'live tab default hub must be the same-origin proxy');
+  assert.match(live, /const DEFAULT_HUB = '\/hub(?:\/vm[12])?';/, 'live tab default hub must be the same-origin proxy');
   assert.match(live, /if \(!isAllowedHub\(base\)\)/, 'live tab must refuse non-loopback hubs before connecting');
   const vite = readFileSync(fileURLToPath(new URL('../vite.config.ts', import.meta.url)), 'utf8');
-  assert.match(vite, /'\/hub': \{ target: 'http:\/\/127\.0\.0\.1:\d+'/, 'hub proxy must target loopback');
+  // Every /hub proxy (legacy /hub and the per-VM /hub/vm1, /hub/vm2) must target loopback.
+  const hubProxies = [...vite.matchAll(/'([^']*\/hub[^']*)': \{ target: '([^']+)'/g)];
+  assert.ok(hubProxies.length >= 1, 'hub proxy configured');
+  for (const [, key, target] of hubProxies) assert.match(target!, /^http:\/\/127\.0\.0\.1:\d+$/, `hub proxy ${key} must target loopback`);
 });

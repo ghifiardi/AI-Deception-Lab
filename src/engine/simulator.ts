@@ -15,6 +15,8 @@ import { DEFAULT_POLICY, TELEMETRY_COLLECTOR, evaluateEgress, evaluatePolicy, is
 import type { PolicyConfig, PolicyRule } from './policy.ts';
 import { createRng } from './rng.ts';
 import { buildScenario } from './scenarios.ts';
+import { V2_MODE_FOR, compileSimulatedV2 } from './v2.ts';
+import type { V2Info } from './v2.ts';
 import type {
   ActionType,
   AnalystConfig,
@@ -33,6 +35,7 @@ import type {
 export const NODE_ZONE: Record<NodeId, Zone> = {
   attacker: 'internet',
   scanner: 'internet',
+  legit: 'internet',
   entry: 'entry',
   'mock-app': 'mock-target',
   'hp-api': 'deception',
@@ -118,6 +121,8 @@ export interface CompiledRun {
   policy: PolicyConfig;
   analyst: AnalystConfig;
   events: LabEvent[];
+  /** Present for Defense V2 runs (simulated swarm or recorded replay). */
+  v2?: V2Info;
 }
 
 interface Scheduled {
@@ -128,6 +133,8 @@ interface Scheduled {
 export function compileRun(opts: CompileOptions): CompiledRun {
   const policy = opts.policy ?? DEFAULT_POLICY;
   const analyst: AnalystConfig = opts.analyst ?? { mode: 'scripted' };
+  // Defense V2 mirrors the live gateway: no ADA/TAA, no analyst, its own rule.
+  if (opts.scenario === 'swarm-v2') return { ...compileSimulatedV2(V2_MODE_FOR[opts.mode], opts.seed), policy, analyst: { mode: 'scripted' } };
   if (analyst.mode === 'interactive') {
     const errors = validateAnalystInputs(analyst.inputs);
     if (errors.length) throw new Error(`Invalid analyst inputs: ${errors.join('; ')}`);
@@ -139,7 +146,7 @@ export function compileRun(opts: CompileOptions): CompiledRun {
   const fixture = buildScenario(opts.scenario, opts.mode, fixtureRng);
   const att = fixture.attacker;
   const attackerNode: NodeId = att.kind === 'benign-scanner' ? 'scanner' : 'attacker';
-  const evPrefix = { 'api-canary': 'A', 'false-positive': 'B', 'agentic-decoy': 'C', 'egress-block': 'D' }[fixture.id];
+  const evPrefix = { 'api-canary': 'A', 'false-positive': 'B', 'agentic-decoy': 'C', 'egress-block': 'D', 'swarm-v2': 'V' }[fixture.id];
 
   const events: LabEvent[] = [];
   const queue: Scheduled[] = [];

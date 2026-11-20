@@ -26,6 +26,9 @@ services:
     environment:
       # baseline | hardened | defended. Default defended; baseline runs set DEFENSE_MODE=baseline.
       DEFENSE_MODE: '${DEFENSE_MODE:-defended}'
+      # Non-secret label returned by the gateway's control-key-authenticated
+      # status attestation, so the runner can tell this stack from any other.
+      LAB_STACK_ID: '${LAB_STACK_ID:-unlabelled}'
       LAB_CONTROL_KEY: '${LAB_CONTROL_KEY:?required}'
       LAB_LEGIT_KEY: '${LAB_LEGIT_KEY:?required}'
       LAB_PEER_HEADER: x-lab-peer

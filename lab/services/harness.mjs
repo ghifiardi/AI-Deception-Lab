@@ -53,6 +53,9 @@ export class ChainLog {
 /** Provider errors that make every further run pointless (auth, billing, invalid request). */
 export class FatalProviderError extends Error {}
 
+/** A target denial ends this agent's session, rather than consuming its remaining budget. */
+class AgentRevoked extends Error {}
+
 export class BudgetExceeded extends Error {
   constructor(reason) {
     super(reason);
@@ -87,6 +90,8 @@ export async function runAgent({ provider, origin, budget: b = {}, guardOpts, he
   /** @type {string|null} */ let stopReason = null;
   /** @type {string|null} */ let answer = null;
   /** @type {string|null} */ let refusal = null;
+  /** @type {AgentRevoked|null} */ let revoked = null;
+  const assertActive = () => { if (revoked) throw revoked; };
 
   const overBudget = (kind) => {
     const wall = performance.now() - started;
@@ -107,6 +112,7 @@ export async function runAgent({ provider, origin, budget: b = {}, guardOpts, he
     },
     /** Throws BudgetExceeded if a model turn is not allowed. */
     beforeModelTurn() {
+      assertActive();
       const over = overBudget('model');
       if (over) throw new BudgetExceeded(over);
     },
@@ -141,6 +147,7 @@ export async function runAgent({ provider, origin, budget: b = {}, guardOpts, he
       log.add({ type: 'model.turn', turn: modelTurns, usage: u, usageMissing: !usage, model: meta.model ?? null, stopReason: meta.stopReason ?? null, fallback: Boolean(meta.fallback) });
     },
     recordScriptedTurn(note) {
+      assertActive();
       modelTurns++;
       log.add({ type: 'agent.step', turn: modelTurns, note });
     },
@@ -149,6 +156,7 @@ export async function runAgent({ provider, origin, budget: b = {}, guardOpts, he
      * @param {string} method @param {unknown} path @param {unknown} [authorization]
      */
     async http(method, path, authorization) {
+      assertActive();
       const over = overBudget('tool');
       if (over) throw new BudgetExceeded(over);
       toolCalls++;
@@ -181,9 +189,14 @@ export async function runAgent({ provider, origin, budget: b = {}, guardOpts, he
         body = `request failed: ${err instanceof Error ? err.name : 'error'}`;
       }
       log.add({ type: 'tool.http', call: toolCalls, method, path, status, bytes: Buffer.byteLength(body), truncated, bodySha256: sha256(body), authorized: Boolean(headers.authorization) });
+      if (status === 403) {
+        revoked = new AgentRevoked('revoked: target returned HTTP 403');
+        throw revoked;
+      }
       return { status, body: truncated ? `${body}\n[truncated at ${budget.maxResponseBytes} bytes]` : body };
     },
     submit(value) {
+      assertActive();
       answer = typeof value === 'string' ? value.slice(0, 200) : null;
       log.add({ type: 'agent.submit', answer });
     },
@@ -198,13 +211,18 @@ export async function runAgent({ provider, origin, budget: b = {}, guardOpts, he
 
   try {
     await provider.run(ctx);
+    assertActive();
     stopReason = answer ? 'submitted' : refusal ? 'refusal' : 'agent ended without submitting';
   } catch (err) {
-    if (err instanceof BudgetExceeded) stopReason = `budget: ${err.reason}`;
+    // A revocation is terminal even if the provider caught it and threw something else.
+    // (The cast keeps TS from narrowing the closure-assigned `revoked` to null.)
+    const denial = /** @type {AgentRevoked|null} */ (revoked);
+    if (denial) stopReason = denial.message;
+    else if (err instanceof BudgetExceeded) stopReason = `budget: ${err.reason}`;
     else if (err instanceof FatalProviderError) {
       log.add({ type: 'agent.stop', reason: `fatal provider error: ${err.message}`.slice(0, 300) });
       throw err;
-    } else stopReason = `error: ${err instanceof Error ? `${err.name}: ${err.message}` : String(err)}`.slice(0, 300);
+    } else stopReason = `error: ${err instanceof Error ? `${err.name}: ${err.message}${err.cause ? ` (cause: ${err.cause.code ?? err.cause.name ?? 'unknown'})` : ''}` : String(err)}`.slice(0, 300);
   }
   log.add({ type: 'agent.stop', reason: stopReason });
 
@@ -213,6 +231,7 @@ export async function runAgent({ provider, origin, budget: b = {}, guardOpts, he
   return {
     provider: provider.name,
     valid,
+    revoked: revoked !== null,
     tokensMeasured: tokens !== null && modelTurns > 0,
     tokens: modelTurns > 0 ? tokens : null,
     /** 'complete' | 'partial' (some turns unreported) | 'unavailable' (no model, or no turn completed) */
